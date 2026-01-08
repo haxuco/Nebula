@@ -105,10 +105,9 @@ export function FilterPipeline({
     for (const filter of filters) {
       if (processed.has(filter.id)) continue;
       
-      // Check if this is a base filter with children
+      const def = FILTER_DEFINITIONS[filter.type];
       const children = baseToChildren.get(filter.id);
       const isBaseWithChildren = children && children.length > 0;
-      const def = FILTER_DEFINITIONS[filter.type];
       const canBeBase = !!(def.isBaseFilter) && !filter.groupId;
       
       if (isBaseWithChildren && canBeBase) {
@@ -117,13 +116,17 @@ export function FilterPipeline({
         
         // Add child filters first (they're already sorted)
         for (const child of children) {
-          result.push(child);
-          processed.add(child.id);
+          if (!processed.has(child.id)) {
+            result.push(child);
+            processed.add(child.id);
+          }
         }
         
         // Add base filter at bottom
-        result.push(filter);
-        processed.add(filter.id);
+        if (!processed.has(filter.id)) {
+          result.push(filter);
+          processed.add(filter.id);
+        }
         
         // Add group end marker
         result.push({ type: 'group-end', baseId: filter.id });
@@ -136,6 +139,11 @@ export function FilterPipeline({
     
     return result;
   }, [filters]);
+
+  // Process filters in order, handling groups and standalone filters
+  const visualFilters = React.useMemo(() => {
+    return displayGroups.filter(item => 'id' in item) as FilterConfig[];
+  }, [displayGroups]);
 
   // Handle creating a group (drag filter onto grouping icon)
   const handleGroupFilter = useCallback((draggedId: string, baseFilterId: string) => {
@@ -273,20 +281,25 @@ export function FilterPipeline({
     if (baseIndex === -1) return;
     
     // Find existing children positions to determine where to insert
-    // Children appear before the base, so insertIndex 0 means right before base
-    // insertIndex N means after N children
+    // insertIndex from useGsapDrag is 0-indexed DOM position within the group:
+    // - insertIndex 0 = above first child (top of group)
+    // - insertIndex 1 = after first child, before second child
+    // - insertIndex N = after Nth child, before (N+1)th child or base
     const existingChildren = currentGrouped.map(id => newFilters.findIndex(f => f.id === id)).filter(idx => idx >= 0).sort((a, b) => a - b);
     
     let insertPosition: number;
-    if (insertIndex === 0) {
-      // Insert right before base
+    if (existingChildren.length === 0) {
+      // No existing children, insert right before base
       insertPosition = baseIndex;
+    } else if (insertIndex === 0) {
+      // Insert at the very top, before the first child
+      insertPosition = existingChildren[0];
     } else if (insertIndex <= existingChildren.length) {
-      // Insert after (insertIndex - 1)th child
+      // Insert after the (insertIndex - 1)th child
       const afterChildIndex = existingChildren[insertIndex - 1];
       insertPosition = afterChildIndex + 1;
     } else {
-      // Insert right before base as fallback
+      // Insert right before base as fallback (at the bottom)
       insertPosition = baseIndex;
     }
     
@@ -305,7 +318,7 @@ export function FilterPipeline({
     isDragging,
     recalculatePositions
   } = useGsapDrag({
-    items: filters,
+    items: visualFilters,
     onReorder: onReorderFilters,
     containerRef: filterListRef,
     isDisabled: linkState?.isSelecting || false,
@@ -332,21 +345,26 @@ export function FilterPipeline({
             onCancelPreview();
           } else {
             // Hovering over new position - create preview order
-            const draggedFilter = filters.find(f => f.id === draggingId);
+            const draggedFilter = visualFilters.find(f => f.id === draggingId);
             const isDraggingGroup = draggedFilter && draggedFilter.groupedFilters && draggedFilter.groupedFilters.length > 0;
             
-            const newFilters = [...filters];
+            const newFilters = [...visualFilters];
             
             if (isDraggingGroup && draggedFilter) {
-              // Moving entire group - move all group members together
+              // Moving entire group - move all group members together in their visual order
               const groupMembers = [draggingId, ...(draggedFilter.groupedFilters || [])];
-              const groupIndices = groupMembers.map(id => newFilters.findIndex(f => f.id === id)).sort((a, b) => a - b);
+              // Use a Set to ensure uniqueness and find all relevant items in visualFilters
+              const memberIds = new Set(groupMembers);
+              const groupIndices = newFilters
+                .map((f, i) => memberIds.has(f.id) ? i : -1)
+                .filter(idx => idx >= 0)
+                .sort((a, b) => a - b);
               
-              // Remove all group members
-              const movingItems = groupIndices.map(i => newFilters[i]).reverse(); // Reverse to remove from end
-              movingItems.forEach(item => {
-                const idx = newFilters.findIndex(f => f.id === item.id);
-                if (idx >= 0) newFilters.splice(idx, 1);
+              const movingItems = groupIndices.map(i => newFilters[i]);
+              
+              // Remove all group members from back to front to preserve indices
+              [...groupIndices].reverse().forEach(idx => {
+                newFilters.splice(idx, 1);
               });
               
               // Calculate insert position
@@ -356,12 +374,16 @@ export function FilterPipeline({
               insertAt -= itemsBeforeInsert;
               insertAt = Math.max(0, insertAt);
               
-              // Insert all group members
+              // Insert all group members at once in their original order
               newFilters.splice(insertAt, 0, ...movingItems);
             } else {
               // Single filter move
               const [removed] = newFilters.splice(originalIndex, 1);
-              newFilters.splice(hoverIndex, 0, removed);
+              let insertAt = hoverIndex;
+              if (originalIndex < insertAt) {
+                insertAt--;
+              }
+              newFilters.splice(insertAt, 0, removed);
             }
             
             onPreviewReorder(newFilters);
@@ -910,7 +932,7 @@ export function FilterPipeline({
                         {/* Group filters (children + base) */}
                         <div className="p-1 space-y-1 relative z-10" data-group-content>
                           {currentGroupItems.map((filter) => {
-                            const actualIndex = filters.findIndex(f => f.id === filter.id);
+                            const actualIndex = visualFilters.findIndex(f => f.id === filter.id);
                             const definition = FILTER_DEFINITIONS[filter.type];
                             const isGrouped = !!filter.groupId;
                             const hasGroupedFilters = !!(filter.groupedFilters && filter.groupedFilters.length > 0);
@@ -991,7 +1013,7 @@ export function FilterPipeline({
                 } else {
                   // Standalone filter - render directly
                   const filter = item as FilterConfig;
-                  const actualIndex = filters.findIndex(f => f.id === filter.id);
+                  const actualIndex = visualFilters.findIndex(f => f.id === filter.id);
                   const definition = FILTER_DEFINITIONS[filter.type];
                   const isGrouped = !!filter.groupId;
                   const hasGroupedFilters = !!(filter.groupedFilters && filter.groupedFilters.length > 0);

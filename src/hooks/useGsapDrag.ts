@@ -77,6 +77,8 @@ export function useGsapDrag<T extends {
     insertIndex: number;
   } | null>(null);
 
+  const COLLAPSED_CARD_HEIGHT = 52; // Standard card height + margin
+
   // Keep items ref updated
   useEffect(() => {
     itemsRef.current = items;
@@ -215,9 +217,10 @@ export function useGsapDrag<T extends {
     }
 
     // CRITICAL FIX: Add a dedicated "bottom zone" for inserting at the end
-    // Find the last valid target and check if cursor is below it
+    // Find the last valid target and check if cursor is below its visual bottom
     const lastTarget = validTargets[validTargets.length - 1];
-    const lastTargetBottom = lastTarget.position.top + lastTarget.position.height;
+    const lastOffset = offsetMapRef.current.get(lastTarget.item.id) || 0;
+    const lastTargetBottom = lastTarget.position.top + lastOffset + lastTarget.position.height;
     const BOTTOM_ZONE_HEIGHT = 40;
 
     // If cursor is below the last filter (with buffer), insert at the end
@@ -229,12 +232,16 @@ export function useGsapDrag<T extends {
     let closestIndex = validTargets[0].index;
     let minDistance = Infinity;
     validTargets.forEach(({
+      item,
       index,
       position
     }) => {
-      // Calculate the center Y position of this target
-      const centerY = position.top + position.height / 2;
-      const distance = Math.abs(relativeY - centerY);
+      // CRITICAL FIX: Account for visual offsets when calculating distance.
+      // Without this, the drag-and-drop logic uses original positions, 
+      // causing an off-by-one error when dragging downwards as items shift up.
+      const offset = offsetMapRef.current.get(item.id) || 0;
+      const visualCenterY = position.top + offset + position.height / 2;
+      const distance = Math.abs(relativeY - visualCenterY);
       if (distance < minDistance) {
         minDistance = distance;
         closestIndex = index;
@@ -244,20 +251,17 @@ export function useGsapDrag<T extends {
     // Determine insertion position based on cursor position relative to closest item
     const closestTarget = validTargets.find(t => t.index === closestIndex);
     if (closestTarget) {
-      const { top, height } = closestTarget.position;
+      const { position } = closestTarget;
+      const offset = offsetMapRef.current.get(closestTarget.item.id) || 0;
+      const visualTop = position.top + offset;
+      const height = position.height;
+      
       const originalIndex = currentItems.findIndex(f => f.id === currentDraggingId);
       const draggedFilter = currentItems.find(f => f.id === currentDraggingId);
       
-      // SENSITIVITY FIX: Drastically increase responsiveness by accounting for the 
-      // visual footprint of the card being dragged.
-      let threshold = top + height / 2;
+      // SENSITIVITY FIX: Balanced responsiveness for both directions using visual positions
+      let threshold = visualTop + height * 0.5; 
       
-      if (originalIndex < closestIndex) {
-        threshold = top + height * 0.1; 
-      } else if (originalIndex > closestIndex) {
-        threshold = top + height * 0.9;
-      }
-
       let targetIndex = relativeY < threshold ? closestIndex : closestIndex + 1;
 
       // RULE: Non-base filters cannot be below the base filter in a group
@@ -291,35 +295,7 @@ export function useGsapDrag<T extends {
         }
       }
 
-      // NEW RULE: Prevent splitting target groups when dragging a standalone filter
-      // If dragging a standalone filter (not a group, not a child of a group)
-      const isStandaloneDrag = !isDraggingGroup && !draggedFilter?.groupId;
-      if (isStandaloneDrag && targetIndex > 0 && targetIndex < currentItems.length) {
-        const prevItem = currentItems[targetIndex - 1];
-        const nextItem = currentItems[targetIndex];
-        
-        // Check if we are between a child and its base, or between two children of the same group
-        const isBetweenGroupMembers = (prevItem.groupId && prevItem.groupId === nextItem.groupId) || 
-                                     (prevItem.groupId && prevItem.groupId === nextItem.id) ||
-                                     (nextItem.groupId && nextItem.groupId === prevItem.id);
-        
-        if (isBetweenGroupMembers) {
-          const groupId = prevItem.groupId || nextItem.groupId || prevItem.id;
-          const groupIndices = currentItems
-            .map((f, i) => (f.id === groupId || f.groupId === groupId) ? i : -1)
-            .filter(i => i !== -1)
-            .sort((a, b) => a - b);
-          
-          if (groupIndices.length > 0) {
-            const start = groupIndices[0];
-            const end = groupIndices[groupIndices.length - 1];
-            // Snap to whichever group boundary is closer
-            targetIndex = (targetIndex <= (start + end + 1) / 2) ? start : end + 1;
-          }
-        }
-      }
-
-      // NEW RULE: A filter group cannot be dragged into another filter group
+      // RULE: Prevent dragging a group into another group
       if (isDraggingGroup && targetIndex > 0 && targetIndex < currentItems.length) {
         const prevItem = currentItems[targetIndex - 1];
         const nextItem = currentItems[targetIndex];
@@ -365,8 +341,14 @@ export function useGsapDrag<T extends {
 
     // ALWAYS treat the dragged item as a single card height for animations
     // This makes groups collapse visually during drag-and-drop reordering
-    const draggedPosition = rowPositionsRef.current.get(draggingId);
-    let draggedHeight = draggedPosition?.height || 0;
+    // We use a gap of 4px to match the Tailwind space-y-1 (4px)
+    const placeholderSpace = COLLAPSED_CARD_HEIGHT + 4;
+
+    // Find visual bounds of the group being dragged to ensure consistent reordering
+    const memberIndices = groupMembers.map(id => currentItems.findIndex(f => f.id === id)).filter(idx => idx >= 0).sort((a, b) => a - b);
+    if (memberIndices.length === 0) return;
+    const groupStart = memberIndices[0];
+    const groupEnd = memberIndices[memberIndices.length - 1];
 
     // Calculate and apply offsets for each item
     currentItems.forEach((item, index) => {
@@ -378,17 +360,20 @@ export function useGsapDrag<T extends {
 
       // Calculate offset for this item
       let offset = 0;
-      if (originalIndex < hoverIndex) {
+      
+      if (hoverIndex > groupEnd) {
         // Dragging DOWN
-        // Items between original and hover move up to fill the space
-        if (index > originalIndex && index < hoverIndex) {
-          offset = -(draggedHeight + 8);
+        // Items between the original group end and the hover position move UP 
+        // to fill the space. We use index < hoverIndex to ensure the gap 
+        // appears EXACTLY at the insertion point.
+        if (index > groupEnd && index < hoverIndex) {
+          offset = -placeholderSpace;
         }
-      } else if (originalIndex > hoverIndex) {
+      } else if (hoverIndex < groupStart) {
         // Dragging UP
-        // Items from hover to original move down to make space
-        if (index >= hoverIndex && index < originalIndex) {
-          offset = draggedHeight + 8;
+        // Items between the hover position and the original group start move DOWN
+        if (index >= hoverIndex && index < groupStart) {
+          offset = placeholderSpace;
         }
       }
 
@@ -428,31 +413,31 @@ export function useGsapDrag<T extends {
         let visualBottom = -Infinity;
         let hasVisibleMembers = false;
 
+        const currentItems = itemsRef.current;
+        const groupIndices = memberIds.map(mId => currentItems.findIndex(f => f.id === mId)).filter(idx => idx >= 0);
+        const minGroupIdx = Math.min(...groupIndices);
+        const maxGroupIdx = Math.max(...groupIndices);
+        // CRITICAL FIX: To be "inside" the group visuals, the hover index must be 
+        // between the first member and the last member (inclusive). 
+        // hoverIndex === maxGroupIdx + 1 means inserting BELOW the group, which is OUTSIDE.
+        const isHoveringInsideGroup = hoverIndex >= minGroupIdx && hoverIndex <= maxGroupIdx;
+
         memberIds.forEach(id => {
           const pos = rowPositionsRef.current.get(id);
           if (!pos) return;
 
-          if (id === draggingId) {
-            // This is the dragged item's placeholder
-            // We only include it in the height calculation if the hoverIndex is within the group's range
-            const currentItems = itemsRef.current;
-            const groupIndices = memberIds.map(mId => currentItems.findIndex(f => f.id === mId)).filter(idx => idx >= 0);
-            const minGroupIdx = Math.min(...groupIndices);
-            const maxGroupIdx = Math.max(...groupIndices);
-            
-            if (hoverIndex >= minGroupIdx && hoverIndex <= maxGroupIdx) {
-              // Hovering inside the group, account for placeholder space at its original position
-              visualTop = Math.min(visualTop, pos.top);
-              visualBottom = Math.max(visualBottom, pos.top + pos.height);
-              hasVisibleMembers = true;
-            }
-          } else {
-            // Regular visible member, account for its shifted position
-            const offset = offsetMapRef.current.get(id) || 0;
-            visualTop = Math.min(visualTop, pos.top + offset);
-            visualBottom = Math.max(visualBottom, pos.top + pos.height + offset);
-            hasVisibleMembers = true;
+          if (id === draggingId && !isHoveringInsideGroup) {
+            // Dragged member is leaving the group, don't include its placeholder
+            return;
           }
+
+          // Regular member or its placeholder - account for its visual position
+          // including any animation offsets. This automatically expands/contracts
+          // the border as members move to make space for the dragged item.
+          const offset = offsetMapRef.current.get(id) || 0;
+          visualTop = Math.min(visualTop, pos.top + offset);
+          visualBottom = Math.max(visualBottom, pos.top + pos.height + offset);
+          hasVisibleMembers = true;
         });
 
         if (!hasVisibleMembers) return;
@@ -477,7 +462,7 @@ export function useGsapDrag<T extends {
         const targetBorderHeight = (targetBottomY + furnitureHeight) - targetTopY;
 
         // Animate all furniture elements together
-        gsap.to([groupTop, groupBorder], {
+        gsap.to(groupTop, {
           y: deltaTopY,
           duration: 0.5,
           ease: 'power2.out'
@@ -490,6 +475,7 @@ export function useGsapDrag<T extends {
         });
 
         gsap.to(groupBorder, {
+          y: deltaTopY,
           height: targetBorderHeight,
           duration: 0.5,
           ease: 'power2.out'
@@ -882,7 +868,8 @@ export function useGsapDrag<T extends {
       if (groupIndices.length > 0) {
         const minGroupIndex = Math.min(...groupIndices);
         const maxGroupIndex = Math.max(...groupIndices);
-        hoverIndexOutsideGroup = currentHoverIndex < minGroupIndex || currentHoverIndex > maxGroupIndex + 1;
+        // Correct boundary check: maxGroupIndex + 1 is the first position OUTSIDE the group at the bottom
+        hoverIndexOutsideGroup = currentHoverIndex < minGroupIndex || currentHoverIndex > maxGroupIndex;
       } else {
         // If we can't find group indices, assume we're outside if position changed
         hoverIndexOutsideGroup = !wasOutsidePanel && originalIndex !== currentHoverIndex;
@@ -1057,10 +1044,11 @@ export function useGsapDrag<T extends {
             });
           }
           
-          // Call the ungroup callback to notify parent
-          onUngroupFilter(draggingId);
+          // CRITICAL: We apply the ungrouping locally to workingItems, 
+          // so we don't need to call onUngroupFilter callback which might 
+          // trigger a redundant state update.
           
-          // Update draggedItem ref since we ungrouped it
+          // Update local reference since we ungrouped it
           const ungroupedItem = workingItems.find(f => f.id === draggingId);
           if (ungroupedItem) {
             draggedItem.groupId = undefined;
@@ -1071,15 +1059,20 @@ export function useGsapDrag<T extends {
         const isDraggingGroup = draggedItem && !draggedItem.groupId && draggedItem.groupedFilters && draggedItem.groupedFilters.length > 0;
         
         if (isDraggingGroup && draggedItem) {
-          // Moving entire group - move all group members together
+          // Moving entire group - move all group members together in their visual order
           const groupMembers = [draggingId, ...(draggedItem.groupedFilters || [])];
-          const groupIndices = groupMembers.map(id => workingItems.findIndex(f => f.id === id)).sort((a, b) => a - b);
+          // Use a Set to ensure uniqueness and find all relevant items in visualFilters
+          const memberIds = new Set(groupMembers);
+          const groupIndices = workingItems
+            .map((f, i) => memberIds.has(f.id) ? i : -1)
+            .filter(idx => idx >= 0)
+            .sort((a, b) => a - b);
           
-          // Remove all group members (from end to start to preserve indices)
-          const movingItems = groupIndices.map(i => workingItems[i]).reverse();
-          movingItems.forEach(item => {
-            const idx = workingItems.findIndex(f => f.id === item.id);
-            if (idx >= 0) workingItems.splice(idx, 1);
+          const movingItems = groupIndices.map(i => workingItems[i]);
+          
+          // Remove all group members from back to front to preserve indices
+          [...groupIndices].reverse().forEach(idx => {
+            workingItems.splice(idx, 1);
           });
           
           // Calculate insert position
@@ -1089,7 +1082,7 @@ export function useGsapDrag<T extends {
           insertAt -= itemsBeforeInsert;
           insertAt = Math.max(0, insertAt);
           
-          // Insert all group members
+          // Insert all group members at once in their original order
           workingItems.splice(insertAt, 0, ...movingItems);
         } else {
           // Single filter reorder (including child filters that were just ungrouped or reordered within group)
@@ -1098,91 +1091,22 @@ export function useGsapDrag<T extends {
           // Need to find the correct index in the workingItems array
           const workingIndex = workingItems.findIndex(f => f.id === draggingId);
           if (workingIndex >= 0) {
+            // Use currentHoverIndex directly - it's already calculated correctly by getDropIndex
+            // based on the visual order of filters
             let insertAt = currentHoverIndex;
             
-            // If reordering within a group, calculate insert position directly from cursor position
-            // IGNORE currentHoverIndex completely - calculate based on group members only
-            if (stillInGroup && draggedItem.groupId) {
-              const baseId = draggedItem.groupId;
-              const baseFilter = itemsRef.current.find(f => f.id === baseId);
-              
-              if (baseFilter && containerRef.current) {
-                // Get cursor position relative to container
-                const containerRect = containerRef.current.getBoundingClientRect();
-                const cursorY = e.clientY - containerRect.top;
-                
-                // Find all group member positions BEFORE removing the dragged item
-                const groupMemberIds = baseFilter.groupedFilters ? [baseId, ...baseFilter.groupedFilters] : [baseId];
-                const groupMembers = groupMemberIds
-                  .map(id => {
-                    const idx = itemsRef.current.findIndex(f => f.id === id);
-                    const pos = idx >= 0 ? rowPositionsRef.current.get(id) : null;
-                    return { id, idx, pos };
-                  })
-                  .filter(item => item.idx >= 0 && item.pos !== null)
-                  .sort((a, b) => a.idx - b.idx);
-                
-                if (groupMembers.length > 0) {
-                  const minGroupIndex = groupMembers[0].idx;
-                  const maxGroupIndex = groupMembers[groupMembers.length - 1].idx;
-                  const isChildFilter = draggedItem.id !== baseId;
-                  
-                  if (isChildFilter) {
-                    // For child filters, find which group member the cursor is closest to
-                    // Only consider child filters (not the base) for positioning
-                    const childMembers = groupMembers.filter(item => item.id !== baseId);
-                    
-                    if (childMembers.length > 0) {
-                      // Find closest child member
-                      let closestMember = childMembers[0];
-                      let minDistance = Infinity;
-                      
-                      childMembers.forEach(item => {
-                        if (item.pos) {
-                          const centerY = item.pos.top + item.pos.height / 2;
-                          const distance = Math.abs(cursorY - centerY);
-                          if (distance < minDistance) {
-                            minDistance = distance;
-                            closestMember = item;
-                          }
-                        }
-                      });
-                      
-                      // Determine if inserting before or after the closest member
-                      if (closestMember.pos) {
-                        const centerY = closestMember.pos.top + closestMember.pos.height / 2;
-                        if (cursorY < centerY) {
-                          // Insert before this member
-                          insertAt = closestMember.idx;
-                        } else {
-                          // Insert after this member (but before base)
-                          insertAt = closestMember.idx + 1;
-                        }
-                      }
-                      
-                      // Clamp to group bounds (children go above base)
-                      insertAt = Math.max(minGroupIndex, Math.min(insertAt, maxGroupIndex));
-                    } else {
-                      // No other children, stay at original position
-                      insertAt = originalIndex;
-                    }
-                  } else {
-                    // Base filter always stays at bottom
-                    insertAt = maxGroupIndex;
-                  }
-                }
-              }
-            }
-            
-            // Now remove the item
-            const [removed] = workingItems.splice(workingIndex, 1);
-            
-            // Adjust insert position for the removal
-            if (workingIndex < insertAt) insertAt--;
-            
-            // Final safety check: ensure insertAt is within the actual group bounds after removal
-            // This is CRITICAL - we must ensure the filter stays within the group
-            if (stillInGroup && draggedItem?.groupId) {
+          // Now remove the item
+          const [removed] = workingItems.splice(workingIndex, 1);
+          
+          // Adjust insert position for the removal
+          // If we removed an item from before the target, the target index shifts down by 1
+          if (workingIndex < insertAt) {
+            insertAt--;
+          }
+          
+          // Final safety check: ensure insertAt is within the actual group bounds after removal
+          // This is CRITICAL - we must ensure the filter stays within the group
+          if (stillInGroup && draggedItem?.groupId) {
               const baseId = draggedItem.groupId;
               const baseFilter = workingItems.find(f => f.id === baseId);
               if (baseFilter) {
