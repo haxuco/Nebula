@@ -887,7 +887,7 @@ export function FilterPipeline({
                     result.push(
                       <div
                         key={`group-container-${currentGroupBaseId}`}
-                        className="border-2 border-purple-500/40 rounded-lg my-2"
+                        className="rounded-lg my-2 relative"
                         data-group-container
                         data-group-base={currentGroupBaseId}
                         style={{
@@ -895,11 +895,20 @@ export function FilterPipeline({
                           marginRight: '0.5rem'
                         }}
                       >
-                        {/* Thick top border */}
-                        <div className="h-2 border-b-2 border-purple-500/40 bg-slate-800/20" data-group-top />
+                        {/* The actual border box that we will animate */}
+                        <div 
+                          className="absolute inset-0 border-2 border-purple-500/40 rounded-lg pointer-events-none" 
+                          data-group-border 
+                        />
+                        
+                        {/* Thick top bar (background only) */}
+                        <div 
+                          className="h-2 bg-slate-800/20 rounded-t-lg relative z-10" 
+                          data-group-top 
+                        />
                         
                         {/* Group filters (children + base) */}
-                        <div className="p-1 space-y-1" data-group-content>
+                        <div className="p-1 space-y-1 relative z-10" data-group-content>
                           {currentGroupItems.map((filter) => {
                             const actualIndex = filters.findIndex(f => f.id === filter.id);
                             const definition = FILTER_DEFINITIONS[filter.type];
@@ -964,8 +973,11 @@ export function FilterPipeline({
                           })}
                         </div>
                         
-                        {/* Thick bottom border */}
-                        <div className="h-2 border-t-2 border-purple-500/40 bg-slate-800/20" data-group-bottom />
+                        {/* Thick bottom bar (background only) */}
+                        <div 
+                          className="h-2 bg-slate-800/20 rounded-b-lg relative z-10" 
+                          data-group-bottom 
+                        />
                       </div>
                     );
                   }

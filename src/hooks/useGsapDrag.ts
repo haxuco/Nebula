@@ -109,6 +109,13 @@ export function useGsapDrag<T extends {
       const groupContent = containerEl.querySelector('[data-group-content]') as HTMLElement;
       const groupTop = containerEl.querySelector('[data-group-top]') as HTMLElement;
       const groupBottom = containerEl.querySelector('[data-group-bottom]') as HTMLElement;
+      const groupBorder = containerEl.querySelector('[data-group-border]') as HTMLElement;
+
+      // CRITICAL: Kill any ongoing animations on group furniture
+      if (groupContent) gsap.killTweensOf(groupContent);
+      if (groupTop) gsap.killTweensOf(groupTop);
+      if (groupBottom) gsap.killTweensOf(groupBottom);
+      if (groupBorder) gsap.killTweensOf(groupBorder);
 
       if (groupContent) {
         // Restore overflow
@@ -136,7 +143,10 @@ export function useGsapDrag<T extends {
 
       // Restore group borders and elements immediately
       if ((containerEl as any).__originalBorder !== undefined) {
-        containerEl.style.borderWidth = (containerEl as any).__originalBorder;
+        if (groupBorder) {
+          groupBorder.style.borderWidth = (containerEl as any).__originalBorder;
+          groupBorder.style.visibility = ''; // Restore visibility
+        }
         delete (containerEl as any).__originalBorder;
       }
       if (groupTop && (groupTop as any).__originalDisplay !== undefined) {
@@ -144,14 +154,17 @@ export function useGsapDrag<T extends {
         delete (groupTop as any).__originalDisplay;
       }
       if (groupTop) {
-        gsap.set(groupTop, { y: 0, clearProps: 'transform' });
+        gsap.set(groupTop, { y: 0, clearProps: 'all' });
       }
       if (groupBottom && (groupBottom as any).__originalDisplay !== undefined) {
         groupBottom.style.display = (groupBottom as any).__originalDisplay;
         delete (groupBottom as any).__originalDisplay;
       }
       if (groupBottom) {
-        gsap.set(groupBottom, { y: 0, clearProps: 'transform' });
+        gsap.set(groupBottom, { y: 0, clearProps: 'all' });
+      }
+      if (groupBorder) {
+        gsap.set(groupBorder, { y: 0, height: '100%', clearProps: 'all' });
       }
     });
   }, [containerRef]);
@@ -278,6 +291,61 @@ export function useGsapDrag<T extends {
         }
       }
 
+      // NEW RULE: Prevent splitting target groups when dragging a standalone filter
+      // If dragging a standalone filter (not a group, not a child of a group)
+      const isStandaloneDrag = !isDraggingGroup && !draggedFilter?.groupId;
+      if (isStandaloneDrag && targetIndex > 0 && targetIndex < currentItems.length) {
+        const prevItem = currentItems[targetIndex - 1];
+        const nextItem = currentItems[targetIndex];
+        
+        // Check if we are between a child and its base, or between two children of the same group
+        const isBetweenGroupMembers = (prevItem.groupId && prevItem.groupId === nextItem.groupId) || 
+                                     (prevItem.groupId && prevItem.groupId === nextItem.id) ||
+                                     (nextItem.groupId && nextItem.groupId === prevItem.id);
+        
+        if (isBetweenGroupMembers) {
+          const groupId = prevItem.groupId || nextItem.groupId || prevItem.id;
+          const groupIndices = currentItems
+            .map((f, i) => (f.id === groupId || f.groupId === groupId) ? i : -1)
+            .filter(i => i !== -1)
+            .sort((a, b) => a - b);
+          
+          if (groupIndices.length > 0) {
+            const start = groupIndices[0];
+            const end = groupIndices[groupIndices.length - 1];
+            // Snap to whichever group boundary is closer
+            targetIndex = (targetIndex <= (start + end + 1) / 2) ? start : end + 1;
+          }
+        }
+      }
+
+      // NEW RULE: A filter group cannot be dragged into another filter group
+      if (isDraggingGroup && targetIndex > 0 && targetIndex < currentItems.length) {
+        const prevItem = currentItems[targetIndex - 1];
+        const nextItem = currentItems[targetIndex];
+        
+        // Check if they belong to the same group
+        const belongToSameGroup = (prevItem.groupId && prevItem.groupId === nextItem.groupId) || 
+                                 (prevItem.groupId && prevItem.groupId === nextItem.id) ||
+                                 (nextItem.groupId && nextItem.groupId === prevItem.id);
+        
+        if (belongToSameGroup) {
+          // Snap targetIndex to either the start or end of this group
+          const groupId = prevItem.groupId || nextItem.groupId || prevItem.id;
+          const groupIndices = currentItems
+            .map((f, i) => (f.id === groupId || f.groupId === groupId) ? i : -1)
+            .filter(i => i !== -1)
+            .sort((a, b) => a - b);
+          
+          if (groupIndices.length > 0) {
+            const start = groupIndices[0];
+            const end = groupIndices[groupIndices.length - 1];
+            // Snap to whichever group boundary is closer
+            targetIndex = (targetIndex <= (start + end + 1) / 2) ? start : end + 1;
+          }
+        }
+      }
+
       return targetIndex;
     }
     
@@ -347,44 +415,82 @@ export function useGsapDrag<T extends {
         const groupContent = container.querySelector('[data-group-content]') as HTMLElement;
         const groupTop = container.querySelector('[data-group-top]') as HTMLElement;
         const groupBottom = container.querySelector('[data-group-bottom]') as HTMLElement;
-        if (!groupContent || !groupTop || !groupBottom) return;
+        const groupBorder = container.querySelector('[data-group-border]') as HTMLElement;
+        if (!groupContent || !groupTop || !groupBottom || !groupBorder) return;
 
         // Find all members of this group in the current items list
         const memberIds = itemsRef.current
           .filter(f => f.id === baseId || f.groupId === baseId)
           .map(f => f.id);
         
-        // Find the first and last member element offsets
-        let minOffset = 0;
-        let maxOffset = 0;
-        let firstMemberId = '';
-        let lastMemberId = '';
+        // Determine visual bounds of the group's items (including potential placeholder space)
+        let visualTop = Infinity;
+        let visualBottom = -Infinity;
+        let hasVisibleMembers = false;
 
-        // Determine which members are currently at the visual top and bottom
-        const visibleMembers = itemsRef.current
-          .filter(f => memberIds.includes(f.id) && f.id !== draggingId)
-          .sort((a, b) => {
-            const aIdx = itemsRef.current.findIndex(f => f.id === a.id);
-            const bIdx = itemsRef.current.findIndex(f => f.id === b.id);
-            return aIdx - bIdx;
-          });
+        memberIds.forEach(id => {
+          const pos = rowPositionsRef.current.get(id);
+          if (!pos) return;
 
-        if (visibleMembers.length > 0) {
-          firstMemberId = visibleMembers[0].id;
-          lastMemberId = visibleMembers[visibleMembers.length - 1].id;
-          minOffset = offsetMapRef.current.get(firstMemberId) || 0;
-          maxOffset = offsetMapRef.current.get(lastMemberId) || 0;
-        }
+          if (id === draggingId) {
+            // This is the dragged item's placeholder
+            // We only include it in the height calculation if the hoverIndex is within the group's range
+            const currentItems = itemsRef.current;
+            const groupIndices = memberIds.map(mId => currentItems.findIndex(f => f.id === mId)).filter(idx => idx >= 0);
+            const minGroupIdx = Math.min(...groupIndices);
+            const maxGroupIdx = Math.max(...groupIndices);
+            
+            if (hoverIndex >= minGroupIdx && hoverIndex <= maxGroupIdx) {
+              // Hovering inside the group, account for placeholder space at its original position
+              visualTop = Math.min(visualTop, pos.top);
+              visualBottom = Math.max(visualBottom, pos.top + pos.height);
+              hasVisibleMembers = true;
+            }
+          } else {
+            // Regular visible member, account for its shifted position
+            const offset = offsetMapRef.current.get(id) || 0;
+            visualTop = Math.min(visualTop, pos.top + offset);
+            visualBottom = Math.max(visualBottom, pos.top + pos.height + offset);
+            hasVisibleMembers = true;
+          }
+        });
 
-        // Shift top and bottom borders to match the first and last visible members
-        // This ensures the placeholder appears OUTSIDE the group container
-        gsap.to(groupTop, {
-          y: minOffset,
+        if (!hasVisibleMembers) return;
+
+        // Find group container top relative to pipeline
+        const pipelineRect = containerRef.current!.getBoundingClientRect();
+        const groupRect = container.getBoundingClientRect();
+        const groupTopInPipeline = groupRect.top - pipelineRect.top;
+        
+        // Layout constants from FilterPipeline (p-1 is 4px, h-2 is 8px)
+        const furniturePadding = 4;
+        const furnitureHeight = 8;
+        
+        // Target positions in pipeline coordinates
+        const targetTopY = visualTop - furniturePadding - furnitureHeight;
+        const targetBottomY = visualBottom + furniturePadding;
+        
+        // Convert to relative y for GSAP (relative to their original DOM positions)
+        const deltaTopY = targetTopY - groupTopInPipeline;
+        const deltaBottomY = targetBottomY - (groupTopInPipeline + container.offsetHeight - furnitureHeight);
+        
+        const targetBorderHeight = (targetBottomY + furnitureHeight) - targetTopY;
+
+        // Animate all furniture elements together
+        gsap.to([groupTop, groupBorder], {
+          y: deltaTopY,
           duration: 0.5,
           ease: 'power2.out'
         });
+
         gsap.to(groupBottom, {
-          y: maxOffset,
+          y: deltaBottomY,
+          duration: 0.5,
+          ease: 'power2.out'
+        });
+
+        gsap.to(groupBorder, {
+          height: targetBorderHeight,
           duration: 0.5,
           ease: 'power2.out'
         });
@@ -415,11 +521,18 @@ export function useGsapDrag<T extends {
 
     // Reset group furniture
     if (containerRef.current) {
-      const furniture = containerRef.current.querySelectorAll('[data-group-top], [data-group-bottom]');
+      const furniture = containerRef.current.querySelectorAll('[data-group-top], [data-group-bottom], [data-group-border]');
       if (furniture.length > 0) {
         gsap.killTweensOf(Array.from(furniture));
         gsap.to(Array.from(furniture), {
           y: 0,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+        // Also reset height for group borders
+        const borders = containerRef.current.querySelectorAll('[data-group-border]');
+        gsap.to(Array.from(borders), {
+          height: '100%',
           duration: 0.4,
           ease: 'power2.out',
         });
@@ -463,6 +576,9 @@ export function useGsapDrag<T extends {
       }
     }
     
+    // Check if we just left a grouping hover state to restore reorder space
+    const leftGroupingIcon = groupingHoverIdRef.current !== null && currentGroupingHoverId === null;
+
     // Update grouping hover state
     if (groupingHoverIdRef.current !== currentGroupingHoverId) {
       groupingHoverIdRef.current = currentGroupingHoverId;
@@ -581,8 +697,8 @@ export function useGsapDrag<T extends {
         // Calculate hover index
         const newHoverIndex = getDropIndex(e.clientY, dragState.draggingId);
 
-        // Update if hover index changed
-        if (newHoverIndex !== dragState.currentHoverIndex && newHoverIndex >= 0) {
+        // Update if hover index changed OR if we just left a grouping icon (to restore space)
+        if ((newHoverIndex !== dragState.currentHoverIndex || leftGroupingIcon) && newHoverIndex >= 0) {
           setDragState(prev => ({
             ...prev,
             currentHoverIndex: newHoverIndex
@@ -811,8 +927,8 @@ export function useGsapDrag<T extends {
             const filterRow = containerRef.current.querySelector(`[data-filter-id="${draggingId}"]`);
             if (filterRow) {
               const rowRect = filterRow.getBoundingClientRect();
-              targetX = rowRect.left - containerRect.left;
-              targetY = rowRect.top - containerRect.top;
+              targetX = rowRect.left;
+              targetY = rowRect.top;
             }
           }
           
@@ -886,6 +1002,12 @@ export function useGsapDrag<T extends {
       const rows = containerRef.current?.querySelectorAll('[data-filter-row]');
       if (rows) {
         gsap.killTweensOf(Array.from(rows));
+      }
+      
+      // Also kill all group furniture animations
+      const furniture = containerRef.current?.querySelectorAll('[data-group-top], [data-group-bottom], [data-group-border], [data-group-content]');
+      if (furniture) {
+        gsap.killTweensOf(Array.from(furniture));
       }
 
       // Restore group container heights and styles IMMEDIATELY upon release
@@ -1169,11 +1291,18 @@ export function useGsapDrag<T extends {
         // KEEP PLACEHOLDER HIDDEN until animation completes
         // Find the original position
         let targetX, targetY;
-        const containerRect = containerRef.current.getBoundingClientRect();
         const originalPosition = rowPositionsRef.current.get(draggingId);
         if (originalPosition) {
-          targetX = containerRect.left;
-          targetY = containerRect.top + originalPosition.top;
+          const filterRow = containerRef.current.querySelector(`[data-filter-id="${draggingId}"]`);
+          if (filterRow) {
+            const rowRect = filterRow.getBoundingClientRect();
+            targetX = rowRect.left;
+            targetY = rowRect.top;
+          } else {
+            const containerRect = containerRef.current.getBoundingClientRect();
+            targetX = containerRect.left;
+            targetY = containerRect.top + originalPosition.top;
+          }
         } else {
           const rect = placeholder.getBoundingClientRect();
           targetX = rect.left;
@@ -1269,6 +1398,15 @@ export function useGsapDrag<T extends {
             y: 0,
             clearProps: 'transform'
           });
+        });
+      }
+
+      // Clear all group furniture animations and transforms
+      const furniture = containerRef.current?.querySelectorAll('[data-group-top], [data-group-bottom], [data-group-border], [data-group-content]');
+      if (furniture) {
+        gsap.killTweensOf(Array.from(furniture));
+        furniture.forEach(el => {
+          gsap.set(el, { y: 0, clearProps: 'all' });
         });
       }
 
@@ -1397,12 +1535,18 @@ export function useGsapDrag<T extends {
       const groupContent = groupContainer.querySelector('[data-group-content]') as HTMLElement;
       const groupTop = groupContainer.querySelector('[data-group-top]') as HTMLElement;
       const groupBottom = groupContainer.querySelector('[data-group-bottom]') as HTMLElement;
+      const groupBorder = groupContainer.querySelector('[data-group-border]') as HTMLElement;
 
       if (groupContent) {
         // Store original state for restoration
-        (groupContainer as any).__originalBorder = groupContainer.style.borderWidth;
+        (groupContainer as any).__originalBorder = groupBorder ? groupBorder.style.borderWidth : '';
         (groupContainer as any).__originalHeight = groupContent.style.height || 'auto';
         (groupContainer as any).__originalOverflow = groupContent.style.overflow;
+        
+        // Hide the border during group drag
+        if (groupBorder) {
+          groupBorder.style.visibility = 'hidden';
+        }
         
         // Collapse height to base filter card only - do it immediately for correct placeholder calculation
         groupContent.style.height = `${filterRow.offsetHeight + 8}px`;
@@ -1587,6 +1731,25 @@ export function useGsapDrag<T extends {
             duration: 0.15,
             ease: 'power2.out'
           });
+        }
+        
+        // Reset group furniture
+        const furniture = containerRef.current?.querySelectorAll('[data-group-top], [data-group-bottom], [data-group-border]');
+        if (furniture) {
+          gsap.to(Array.from(furniture), {
+            y: 0,
+            duration: 0.15,
+            ease: 'power2.out'
+          });
+          const borders = containerRef.current?.querySelectorAll('[data-group-border]');
+          if (borders) {
+            borders.forEach(b => (b as HTMLElement).style.visibility = '');
+            gsap.to(Array.from(borders), {
+              height: '100%',
+              duration: 0.15,
+              ease: 'power2.out'
+            });
+          }
         }
         offsetMapRef.current.clear();
         floatingElementRef.current = null;
