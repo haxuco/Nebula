@@ -78,6 +78,17 @@ const defaultDuplicateLayerParams: DuplicateLayerParams = {
   // Source on top
   opacity: 50
 };
+const defaultPatternParams: PatternParams = {
+  view: 'patterns',
+  opacity: 0.5,
+  width: 50,
+  height: 50,
+  orientation: 'vertical',
+  line1Color: '#ffffff',
+  line1Thickness: 5,
+  line2Color: '#000000',
+  line2Thickness: 5
+};
 export const FILTER_DEFINITIONS: Record<FilterType, FilterDefinition> = {
   blur: {
     type: 'blur',
@@ -128,33 +139,12 @@ export const FILTER_DEFINITIONS: Record<FilterType, FilterDefinition> = {
   pattern: {
     type: 'pattern',
     name: 'Pattern Overlay',
-    description: 'Tile a pattern image across the canvas',
-    defaultParams: {
-      opacity: 0.5,
-      width: 50,
-      height: 50
-    },
-    paramRanges: {
-      opacity: {
-        min: 0,
-        max: 1,
-        step: 0.01,
-        label: 'Opacity'
-      },
-      width: {
-        min: 2,
-        max: 200,
-        step: 1,
-        label: 'Tile Width'
-      },
-      height: {
-        min: 2,
-        max: 200,
-        step: 1,
-        label: 'Tile Height'
-      }
-    },
-    requiresImage: true
+    description: 'Tile a pattern image or lines across the canvas',
+    defaultParams: {},
+    paramRanges: {},
+    requiresImage: true,
+    customUI: true,
+    defaultPatternParams: defaultPatternParams
   },
   cmyk: {
     type: 'cmyk',

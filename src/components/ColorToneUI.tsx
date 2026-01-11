@@ -77,10 +77,10 @@ export function ColorToneUI({
   return <div className="space-y-4">
       {/* Reset Buttons */}
       <div className="grid grid-cols-2 gap-2">
-        <button onClick={resetAllColors} className="px-3 py-2 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-lg text-xs text-slate-300 transition-colors">
+        <button onClick={resetAllColors} className="px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs text-slate-600 transition-colors font-medium">
           Reset All Colors
         </button>
-        <button onClick={resetChannel} className="px-3 py-2 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 rounded-lg text-xs text-slate-300 transition-colors">
+        <button onClick={resetChannel} className="px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs text-slate-600 transition-colors font-medium">
           Reset Channel
         </button>
       </div>
@@ -91,11 +91,11 @@ export function ColorToneUI({
         const isActive = activeChannel === channel;
         const hasEdits = hasChannelEdits(channel);
         const channelColor = COLOR_CHANNEL_COLORS[channel];
-        return <button key={channel} onClick={() => onChannelChange(channel)} className={`relative h-8 rounded-lg transition-all ${isActive ? 'ring-2 ring-purple-400 ring-offset-2 ring-offset-slate-800' : 'hover:ring-1 hover:ring-slate-600'}`} style={{
+        return <button key={channel} onClick={() => onChannelChange(channel)} className={`relative h-8 transition-all ${isActive ? 'ring-2 ring-blue-600 ring-offset-2 ring-offset-white' : 'hover:ring-1 hover:ring-slate-300'}`} style={{
           background: channelColor
         }} title={COLOR_CHANNEL_LABELS[channel]}>
-              {hasEdits && <div className="absolute top-0.5 right-0.5 w-4 h-4 bg-slate-900/80 rounded-full flex items-center justify-center">
-                  <PencilIcon className="w-2.5 h-2.5 text-slate-300" />
+              {hasEdits && <div className="absolute top-0.5 right-0.5 w-4 h-4 bg-white/90 rounded-none shadow-sm flex items-center justify-center">
+                  <PencilIcon className="w-2.5 h-2.5 text-slate-600" />
                 </div>}
             </button>;
       })}
@@ -104,10 +104,10 @@ export function ColorToneUI({
       {/* Saturation Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-400">
+          <label className="text-xs font-semibold text-slate-500">
             Saturation
           </label>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {currentChannelParams.saturation}
           </span>
         </div>
@@ -117,21 +117,21 @@ export function ColorToneUI({
         }} />
           <input type="range" min={0} max={200} step={1} value={currentChannelParams.saturation} onChange={e => updateChannelParam('saturation', parseFloat(e.target.value))} className="absolute inset-0 w-full h-full bg-transparent rounded-lg appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-3
-              [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:w-3.5
+              [&::-webkit-slider-thumb]:h-3.5
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
-              [&::-moz-range-thumb]:w-3
-              [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:w-3.5
+              [&::-moz-range-thumb]:h-3.5
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
@@ -140,8 +140,8 @@ export function ColorToneUI({
       {/* Hue Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-400">Hue</label>
-          <span className="text-xs text-slate-500 font-mono">
+          <label className="text-xs font-semibold text-slate-500">Hue</label>
+          <span className="text-xs text-slate-400 font-mono">
             {currentChannelParams.hue}°
           </span>
         </div>
@@ -151,21 +151,21 @@ export function ColorToneUI({
         }} />
           <input type="range" min={-180} max={180} step={1} value={currentChannelParams.hue} onChange={e => updateChannelParam('hue', parseFloat(e.target.value))} className="absolute inset-0 w-full h-full bg-transparent rounded-lg appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-3
-              [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:w-3.5
+              [&::-webkit-slider-thumb]:h-3.5
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
-              [&::-moz-range-thumb]:w-3
-              [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:w-3.5
+              [&::-moz-range-thumb]:h-3.5
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
@@ -174,10 +174,10 @@ export function ColorToneUI({
       {/* Tone (Temperature) Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-400">
+          <label className="text-xs font-semibold text-slate-500">
             Tone (Temperature)
           </label>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {currentChannelParams.tone}
           </span>
         </div>
@@ -187,21 +187,21 @@ export function ColorToneUI({
         }} />
           <input type="range" min={-100} max={100} step={1} value={currentChannelParams.tone} onChange={e => updateChannelParam('tone', parseFloat(e.target.value))} className="absolute inset-0 w-full h-full bg-transparent rounded-lg appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-3
-              [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:w-3.5
+              [&::-webkit-slider-thumb]:h-3.5
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
-              [&::-moz-range-thumb]:w-3
-              [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:w-3.5
+              [&::-moz-range-thumb]:h-3.5
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
@@ -210,8 +210,8 @@ export function ColorToneUI({
       {/* Tint Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-400">Tint</label>
-          <span className="text-xs text-slate-500 font-mono">
+          <label className="text-xs font-semibold text-slate-500">Tint</label>
+          <span className="text-xs text-slate-400 font-mono">
             {currentChannelParams.tint}
           </span>
         </div>
@@ -221,21 +221,21 @@ export function ColorToneUI({
         }} />
           <input type="range" min={-100} max={100} step={1} value={currentChannelParams.tint} onChange={e => updateChannelParam('tint', parseFloat(e.target.value))} className="absolute inset-0 w-full h-full bg-transparent rounded-lg appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-3
-              [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:w-3.5
+              [&::-webkit-slider-thumb]:h-3.5
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
-              [&::-moz-range-thumb]:w-3
-              [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:w-3.5
+              [&::-moz-range-thumb]:h-3.5
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>

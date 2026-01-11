@@ -82,14 +82,14 @@ export function DualRangeSlider({
           <div className="absolute top-0 -translate-x-1/2 cursor-ew-resize group" style={{
           left: `${minPercent}%`
         }} onMouseDown={handleMouseDown('min')}>
-            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 shadow-lg transition-transform group-hover:scale-110" />
+            <div className="w-3 h-3 rounded-none bg-gradient-to-br from-blue-600 to-blue-500 shadow-lg transition-transform group-hover:scale-110" />
           </div>
 
           {/* Max thumb */}
           <div className="absolute top-0 -translate-x-1/2 cursor-ew-resize group" style={{
           left: `${maxPercent}%`
         }} onMouseDown={handleMouseDown('max')}>
-            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 shadow-lg transition-transform group-hover:scale-110" />
+            <div className="w-3 h-3 rounded-none bg-gradient-to-br from-blue-600 to-blue-500 shadow-lg transition-transform group-hover:scale-110" />
           </div>
         </div>
       </div>

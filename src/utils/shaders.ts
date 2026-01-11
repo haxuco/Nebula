@@ -701,40 +701,65 @@ out vec4 outColor;
 uniform sampler2D u_texture;
 uniform sampler2D u_pattern;
 uniform vec2 u_resolution;
-uniform float u_opacity;
+uniform int u_patternView; // 0 = patterns, 1 = lines
+uniform float u_patternOpacity;
+// Patterns view
 uniform float u_width;
 uniform float u_height;
 uniform float u_hasPattern;
+// Lines view
+uniform int u_orientation; // 0 = vertical, 1 = horizontal
+uniform vec3 u_line1Color;
+uniform float u_line1Thickness;
+uniform vec3 u_line2Color;
+uniform float u_line2Thickness;
 uniform int u_blendMode;
 
 ${blendModeFunctions}
 
 void main() {
   vec4 originalColor = texture(u_texture, v_texCoord);
+  vec4 patternColor;
   
-  // If no pattern uploaded, just return original
-  if (u_hasPattern < 0.5) {
-    outColor = originalColor;
-    return;
+  if (u_patternView == 0) {
+    // Patterns View
+    if (u_hasPattern < 0.5) {
+      outColor = originalColor;
+      return;
+    }
+    
+    // Convert to pixel coordinates
+    vec2 pixelCoord = v_texCoord * u_resolution;
+    
+    // Calculate tile size in pixels
+    vec2 tileSize = vec2(u_width, u_height);
+    
+    // Get position within the current tile (0 to 1)
+    vec2 tileCoord = mod(pixelCoord, tileSize) / tileSize;
+    
+    // Sample the pattern texture
+    patternColor = texture(u_pattern, tileCoord);
+  } else {
+    // Lines View
+    // Convert to pixel coordinates
+    vec2 pixelCoord = v_texCoord * u_resolution;
+    float pos = (u_orientation == 0) ? pixelCoord.x : pixelCoord.y;
+    
+    float totalThickness = u_line1Thickness + u_line2Thickness;
+    float modPos = mod(pos, totalThickness);
+    
+    if (modPos < u_line1Thickness) {
+      patternColor = vec4(u_line1Color, 1.0);
+    } else {
+      patternColor = vec4(u_line2Color, 1.0);
+    }
   }
   
-  // Convert to pixel coordinates
-  vec2 pixelCoord = v_texCoord * u_resolution;
-  
-  // Calculate tile size in pixels
-  vec2 tileSize = vec2(u_width, u_height);
-  
-  // Get position within the current tile (0 to 1)
-  vec2 tileCoord = mod(pixelCoord, tileSize) / tileSize;
-  
-  // Sample the pattern texture
-  vec4 patternColor = texture(u_pattern, tileCoord);
-  
   // Apply blend mode
-  vec3 blended = applyBlendMode(u_blendMode, originalColor.rgb, patternColor.rgb, v_texCoord, u_opacity);
+  vec3 blended = applyBlendMode(u_blendMode, originalColor.rgb, patternColor.rgb, v_texCoord, u_patternOpacity);
   
   // Mix with opacity and pattern alpha
-  outColor = vec4(mix(originalColor.rgb, blended, u_opacity * patternColor.a), originalColor.a);
+  outColor = vec4(mix(originalColor.rgb, blended, u_patternOpacity * patternColor.a), originalColor.a);
 }
 `,
   cmyk: `#version 300 es

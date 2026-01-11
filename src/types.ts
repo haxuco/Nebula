@@ -15,6 +15,21 @@ export type BlendMode =
 // HSL group
 | 'hue' | 'saturation' | 'color' | 'luminosity';
 export type TearMotionType = 'instantJump' | 'sineWave' | 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'bounce' | 'elastic';
+export type PatternView = 'patterns' | 'lines';
+export interface PatternParams {
+  view: PatternView;
+  // Common
+  opacity: number;
+  // Patterns view
+  width: number;
+  height: number;
+  // Lines view
+  orientation: 'vertical' | 'horizontal';
+  line1Color: string; // hex
+  line1Thickness: number; // 0-100
+  line2Color: string; // hex
+  line2Thickness: number; // 0-100
+}
 export interface ColorToneChannelParams {
   saturation: number; // 0-200, default 100
   hue: number; // -180 to 180, default 0
@@ -88,9 +103,12 @@ export interface FilterConfig {
   vsyncTearsParams?: VSyncTearsParams;
   chromaticAberrationParams?: ChromaticAberrationParams;
   duplicateLayerParams?: DuplicateLayerParams;
+  patternParams?: PatternParams;
   linkedDimensions?: string[]; // Array of filter IDs that this filter's dimensions are linked to
   groupId?: string; // ID of the base filter this filter is grouped under
   groupedFilters?: string[]; // Array of filter IDs grouped under this base filter (only for base filters)
+  maskId?: string; // ID of the pattern filter masking this filter/group
+  maskedFilterId?: string; // ID of the filter/group being masked (only for pattern filters)
 }
 export interface FilterDefinition {
   type: FilterType;
@@ -113,6 +131,7 @@ export interface FilterDefinition {
   defaultVSyncTearsParams?: VSyncTearsParams;
   defaultChromaticAberrationParams?: ChromaticAberrationParams;
   defaultDuplicateLayerParams?: DuplicateLayerParams;
+  defaultPatternParams?: PatternParams;
 }
 export type SourceType = 'none' | 'webcam' | 'image' | 'video';
 export interface MediaSource {

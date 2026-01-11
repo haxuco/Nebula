@@ -71,13 +71,13 @@ export function TripleRangeSlider({
       {/* Track */}
       <div ref={trackRef} className="relative h-1.5 bg-slate-700/50 rounded-lg cursor-pointer">
         {/* Filled range (from min to max) */}
-        <div className="absolute h-full bg-gradient-to-r from-purple-400/30 to-blue-400/30 rounded-lg" style={{
+        <div className="absolute h-full bg-gradient-to-r from-blue-600/30 to-blue-500/30 rounded-lg" style={{
         left: `${minPercent}%`,
         width: `${maxPercent - minPercent}%`
       }} />
 
         {/* Min thumb */}
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gradient-to-br from-purple-400 to-purple-500 cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg" style={{
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-none bg-gradient-to-br from-blue-600 to-blue-700 cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg" style={{
         left: `${minPercent}%`
       }} onMouseDown={handleMouseDown('min')}>
           <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 font-mono whitespace-nowrap">
@@ -87,7 +87,7 @@ export function TripleRangeSlider({
         </div>
 
         {/* Avg thumb */}
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg z-10" style={{
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-none bg-gradient-to-br from-blue-400 to-cyan-400 cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg z-10" style={{
         left: `${avgPercent}%`
       }} onMouseDown={handleMouseDown('avg')}>
           <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-blue-400 font-mono whitespace-nowrap font-semibold">
@@ -97,7 +97,7 @@ export function TripleRangeSlider({
         </div>
 
         {/* Max thumb */}
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg" style={{
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-none bg-gradient-to-br from-blue-400 to-blue-500 cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg" style={{
         left: `${maxPercent}%`
       }} onMouseDown={handleMouseDown('max')}>
           <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 font-mono whitespace-nowrap">

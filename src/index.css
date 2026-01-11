@@ -11,26 +11,39 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  user-select: none;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Custom scrollbar for sidebar */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+/* Custom scrollbar for sidebar - positioned on the left */
+.scrollbar-left {
+  direction: rtl;
+  /* Compensate for scrollbar width so it doesn't push content */
+  margin-left: -1px;
+  padding-left: 1px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
+.scrollbar-left > *,
+.scrollbar-left [style*="direction: ltr"] {
+  direction: ltr;
+}
+
+.scrollbar-left::-webkit-scrollbar {
+  width: 1px;
+}
+
+.scrollbar-left::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 3px;
+.scrollbar-left::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 0;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+.scrollbar-left::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
 }

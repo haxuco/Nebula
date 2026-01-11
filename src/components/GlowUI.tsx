@@ -23,30 +23,30 @@ export function GlowUI({
       <div className="space-y-3 pb-6 border-b border-slate-700/30">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-slate-400">
+            <label className="text-xs font-semibold text-slate-500">
               Opacity
             </label>
             <span className="text-xs text-slate-500 font-mono">
               {Math.round(params.opacity * 100)}%
             </span>
           </div>
-          <input type="range" min={0} max={1} step={0.01} value={params.opacity} onChange={e => updateParam('opacity', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+          <input type="range" min={0} max={1} step={0.01} value={params.opacity} onChange={e => updateParam('opacity', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3
               [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
               [&::-moz-range-thumb]:w-3
               [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
@@ -89,60 +89,60 @@ export function GlowUI({
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-slate-400">
+            <label className="text-xs font-semibold text-slate-500">
               Distance
             </label>
             <span className="text-xs text-slate-500 font-mono">
               {params.distance}px
             </span>
           </div>
-          <input type="range" min={0} max={350} step={1} value={params.distance} onChange={e => updateParam('distance', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+          <input type="range" min={0} max={350} step={1} value={params.distance} onChange={e => updateParam('distance', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3
               [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
               [&::-moz-range-thumb]:w-3
               [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-slate-400">
+            <label className="text-xs font-semibold text-slate-500">
               Blur (Radial)
             </label>
             <span className="text-xs text-slate-500 font-mono">
               {params.blur}px
             </span>
           </div>
-          <input type="range" min={0} max={100} step={1} value={params.blur} onChange={e => updateParam('blur', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+          <input type="range" min={0} max={100} step={1} value={params.blur} onChange={e => updateParam('blur', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3
               [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
               [&::-moz-range-thumb]:w-3
               [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>

@@ -44,10 +44,20 @@ export function useMediaSource() {
         }
       });
       console.log('Webcam stream obtained');
+      // Verify stream is active
+      const videoTracks = stream.getVideoTracks();
+      if (videoTracks.length === 0) {
+        throw new Error('No video tracks in stream');
+      }
+      console.log('Video track:', videoTracks[0].label, 'enabled:', videoTracks[0].enabled, 'readyState:', videoTracks[0].readyState);
+      
       const video = document.createElement('video');
       video.autoplay = true;
       video.playsInline = true;
       video.muted = true;
+      // Set explicit dimensions to help with dimension detection
+      video.width = 1920;
+      video.height = 1080;
       video.srcObject = stream;
 
       // Add to hidden container
@@ -65,14 +75,19 @@ export function useMediaSource() {
             readyState: video.readyState,
             videoWidth: video.videoWidth,
             videoHeight: video.videoHeight,
-            paused: video.paused
+            paused: video.paused,
+            srcObject: !!video.srcObject
           });
 
-          // Check if video has valid dimensions and is playing
-          if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+          // Check if video has valid dimensions and is ready
+          // For webcam streams, we need readyState >= 2 (HAVE_CURRENT_DATA) and valid dimensions
+          const videoTracks = stream.getVideoTracks();
+          const isStreamActive = videoTracks.length > 0 && videoTracks[0].readyState === 'live';
+          
+          if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && !video.paused && isStreamActive) {
             resolved = true;
             videoRef.current = video;
-            console.log('Video ready! Dimensions:', video.videoWidth, 'x', video.videoHeight);
+            console.log('Video ready! Dimensions:', video.videoWidth, 'x', video.videoHeight, 'Stream active:', isStreamActive);
             setSource({
               type: 'webcam',
               stream,
@@ -80,8 +95,20 @@ export function useMediaSource() {
             });
             setIsReady(true);
             resolve();
+          } else {
+            console.log('Video not ready yet:', {
+              readyState: video.readyState,
+              videoWidth: video.videoWidth,
+              videoHeight: video.videoHeight,
+              paused: video.paused,
+              streamActive: isStreamActive
+            });
           }
         };
+        video.addEventListener('loadedmetadata', () => {
+          console.log('loadedmetadata event fired, dimensions:', video.videoWidth, 'x', video.videoHeight);
+          checkReady();
+        });
         video.addEventListener('loadeddata', () => {
           console.log('loadeddata event fired');
           checkReady();
@@ -102,11 +129,16 @@ export function useMediaSource() {
           }
         };
 
-        // Start playing
+        // Start playing - this is critical for webcam streams
         console.log('Starting video playback...');
         video.play().then(() => {
-          console.log('Video play() succeeded');
-          setTimeout(checkReady, 100);
+          console.log('Video play() succeeded, checking ready state...');
+          // Give it a moment for dimensions to be available
+          setTimeout(() => {
+            checkReady();
+            // Also check again after a short delay in case dimensions weren't ready yet
+            setTimeout(checkReady, 200);
+          }, 100);
         }).catch(err => {
           console.error('Video play() failed:', err);
           reject(err);

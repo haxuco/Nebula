@@ -36,7 +36,7 @@ function Tooltip({
       });
     }
   }, [anchorRef]);
-  return ReactDOM.createPortal(<div className="fixed w-56 p-2 bg-slate-800/95 backdrop-blur-sm border border-slate-700 rounded-lg shadow-xl text-xs text-slate-300 pointer-events-none transform -translate-y-full" style={{
+  return ReactDOM.createPortal(<div className="fixed w-56 p-2 bg-white backdrop-blur-sm border border-slate-200 shadow-xl text-xs text-slate-700 pointer-events-none transform -translate-y-full" style={{
     top: `${position.top}px`,
     left: `${position.left}px`,
     zIndex: 10000
@@ -67,32 +67,32 @@ export function ChromaticAberrationUI({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-slate-400">Amount</label>
+            <label className="text-xs font-semibold text-slate-500">Amount</label>
             <div ref={amountRef} className="relative group" onMouseEnter={() => setHoveredParam('amount')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.amount}
           </span>
         </div>
-        <input type="range" min={0} max={100} step={1} value={params.amount} onChange={e => updateParam('amount', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={0} max={100} step={1} value={params.amount} onChange={e => updateParam('amount', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
-            [&::-webkit-slider-thumb]:from-purple-400
-            [&::-webkit-slider-thumb]:to-blue-400
+            [&::-webkit-slider-thumb]:from-blue-600
+            [&::-webkit-slider-thumb]:to-blue-500
             [&::-webkit-slider-thumb]:cursor-pointer
             [&::-webkit-slider-thumb]:transition-transform
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
-            [&::-moz-range-thumb]:from-purple-400
-            [&::-moz-range-thumb]:to-blue-400
+            [&::-moz-range-thumb]:from-blue-600
+            [&::-moz-range-thumb]:to-blue-500
             [&::-moz-range-thumb]:border-0
             [&::-moz-range-thumb]:cursor-pointer" />
       </div>
@@ -105,19 +105,19 @@ export function ChromaticAberrationUI({
               Red Offset
             </label>
             <div ref={redOffsetRef} className="relative group" onMouseEnter={() => setHoveredParam('redOffset')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.redOffset > 0 ? '+' : ''}
             {params.redOffset}
           </span>
         </div>
-        <input type="range" min={-100} max={100} step={1} value={params.redOffset} onChange={e => updateParam('redOffset', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={-100} max={100} step={1} value={params.redOffset} onChange={e => updateParam('redOffset', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
             [&::-webkit-slider-thumb]:from-red-400
             [&::-webkit-slider-thumb]:to-red-500
@@ -126,7 +126,7 @@ export function ChromaticAberrationUI({
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
             [&::-moz-range-thumb]:from-red-400
             [&::-moz-range-thumb]:to-red-500
@@ -142,19 +142,19 @@ export function ChromaticAberrationUI({
               Green Offset
             </label>
             <div ref={greenOffsetRef} className="relative group" onMouseEnter={() => setHoveredParam('greenOffset')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.greenOffset > 0 ? '+' : ''}
             {params.greenOffset}
           </span>
         </div>
-        <input type="range" min={-100} max={100} step={1} value={params.greenOffset} onChange={e => updateParam('greenOffset', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={-100} max={100} step={1} value={params.greenOffset} onChange={e => updateParam('greenOffset', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
             [&::-webkit-slider-thumb]:from-green-400
             [&::-webkit-slider-thumb]:to-green-500
@@ -163,7 +163,7 @@ export function ChromaticAberrationUI({
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
             [&::-moz-range-thumb]:from-green-400
             [&::-moz-range-thumb]:to-green-500
@@ -179,19 +179,19 @@ export function ChromaticAberrationUI({
               Blue Offset
             </label>
             <div ref={blueOffsetRef} className="relative group" onMouseEnter={() => setHoveredParam('blueOffset')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.blueOffset > 0 ? '+' : ''}
             {params.blueOffset}
           </span>
         </div>
-        <input type="range" min={-100} max={100} step={1} value={params.blueOffset} onChange={e => updateParam('blueOffset', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={-100} max={100} step={1} value={params.blueOffset} onChange={e => updateParam('blueOffset', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
             [&::-webkit-slider-thumb]:from-blue-400
             [&::-webkit-slider-thumb]:to-blue-500
@@ -200,7 +200,7 @@ export function ChromaticAberrationUI({
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
             [&::-moz-range-thumb]:from-blue-400
             [&::-moz-range-thumb]:to-blue-500
@@ -212,34 +212,34 @@ export function ChromaticAberrationUI({
       <div className="space-y-1.5 pb-4 border-b border-slate-700/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-slate-400">
+            <label className="text-xs font-semibold text-slate-500">
               Falloff
             </label>
             <div ref={falloffRef} className="relative group" onMouseEnter={() => setHoveredParam('falloff')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.falloff}
           </span>
         </div>
-        <input type="range" min={0} max={100} step={1} value={params.falloff} onChange={e => updateParam('falloff', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={0} max={100} step={1} value={params.falloff} onChange={e => updateParam('falloff', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
-            [&::-webkit-slider-thumb]:from-purple-400
-            [&::-webkit-slider-thumb]:to-blue-400
+            [&::-webkit-slider-thumb]:from-blue-600
+            [&::-webkit-slider-thumb]:to-blue-500
             [&::-webkit-slider-thumb]:cursor-pointer
             [&::-webkit-slider-thumb]:transition-transform
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
-            [&::-moz-range-thumb]:from-purple-400
-            [&::-moz-range-thumb]:to-blue-400
+            [&::-moz-range-thumb]:from-blue-600
+            [&::-moz-range-thumb]:to-blue-500
             [&::-moz-range-thumb]:border-0
             [&::-moz-range-thumb]:cursor-pointer" />
       </div>
@@ -248,34 +248,34 @@ export function ChromaticAberrationUI({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-slate-400">
+            <label className="text-xs font-semibold text-slate-500">
               Center X
             </label>
             <div ref={centerXRef} className="relative group" onMouseEnter={() => setHoveredParam('centerX')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.centerX}%
           </span>
         </div>
-        <input type="range" min={0} max={100} step={1} value={params.centerX} onChange={e => updateParam('centerX', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={0} max={100} step={1} value={params.centerX} onChange={e => updateParam('centerX', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
-            [&::-webkit-slider-thumb]:from-purple-400
-            [&::-webkit-slider-thumb]:to-blue-400
+            [&::-webkit-slider-thumb]:from-blue-600
+            [&::-webkit-slider-thumb]:to-blue-500
             [&::-webkit-slider-thumb]:cursor-pointer
             [&::-webkit-slider-thumb]:transition-transform
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
-            [&::-moz-range-thumb]:from-purple-400
-            [&::-moz-range-thumb]:to-blue-400
+            [&::-moz-range-thumb]:from-blue-600
+            [&::-moz-range-thumb]:to-blue-500
             [&::-moz-range-thumb]:border-0
             [&::-moz-range-thumb]:cursor-pointer" />
       </div>
@@ -284,34 +284,34 @@ export function ChromaticAberrationUI({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-slate-400">
+            <label className="text-xs font-semibold text-slate-500">
               Center Y
             </label>
             <div ref={centerYRef} className="relative group" onMouseEnter={() => setHoveredParam('centerY')} onMouseLeave={() => setHoveredParam(null)}>
-              <InfoIcon className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <InfoIcon className="w-3.5 h-3.5 text-slate-400 cursor-help" />
             </div>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-400 font-mono">
             {params.centerY}%
           </span>
         </div>
-        <input type="range" min={0} max={100} step={1} value={params.centerY} onChange={e => updateParam('centerY', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700/50 rounded-lg appearance-none cursor-pointer
+        <input type="range" min={0} max={100} step={1} value={params.centerY} onChange={e => updateParam('centerY', parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-3
             [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:rounded-none
             [&::-webkit-slider-thumb]:bg-gradient-to-br
-            [&::-webkit-slider-thumb]:from-purple-400
-            [&::-webkit-slider-thumb]:to-blue-400
+            [&::-webkit-slider-thumb]:from-blue-600
+            [&::-webkit-slider-thumb]:to-blue-500
             [&::-webkit-slider-thumb]:cursor-pointer
             [&::-webkit-slider-thumb]:transition-transform
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-3
             [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:rounded-none
             [&::-moz-range-thumb]:bg-gradient-to-br
-            [&::-moz-range-thumb]:from-purple-400
-            [&::-moz-range-thumb]:to-blue-400
+            [&::-moz-range-thumb]:from-blue-600
+            [&::-moz-range-thumb]:to-blue-500
             [&::-moz-range-thumb]:border-0
             [&::-moz-range-thumb]:cursor-pointer" />
       </div>

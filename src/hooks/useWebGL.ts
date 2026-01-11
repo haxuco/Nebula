@@ -108,16 +108,26 @@ export function useWebGL(canvasRef: React.RefObject<HTMLCanvasElement>) {
     const isWebcam = source instanceof HTMLVideoElement && !source.src;
 
     // For video sources, ensure they're playing
-    if (source instanceof HTMLVideoElement && source.paused) {
-      source.play().catch(err => console.error('Failed to play video:', err));
+    if (source instanceof HTMLVideoElement) {
+      if (source.paused) {
+        source.play().catch(err => console.error('Failed to play video:', err));
+      }
     }
     const canvas = gl.canvas as HTMLCanvasElement;
 
     // Get source dimensions
     const sourceWidth = source instanceof HTMLVideoElement ? source.videoWidth : source.naturalWidth || source.width;
     const sourceHeight = source instanceof HTMLVideoElement ? source.videoHeight : source.naturalHeight || source.height;
-    if (sourceWidth === 0 || sourceHeight === 0) return;
-    if (source instanceof HTMLVideoElement && source.readyState < 2) return;
+    
+    // Early return if source not ready - but don't clear canvas in this case
+    if (sourceWidth === 0 || sourceHeight === 0) {
+      // Don't render if dimensions aren't available yet
+      return;
+    }
+    if (source instanceof HTMLVideoElement && source.readyState < 2) {
+      // Video not ready yet
+      return;
+    }
     if (source instanceof HTMLImageElement && !source.complete) return;
 
     // Get container dimensions from parent element
@@ -143,7 +153,7 @@ export function useWebGL(canvasRef: React.RefObject<HTMLCanvasElement>) {
       canvas.height = renderHeight;
     }
     gl.viewport(0, 0, renderWidth, renderHeight);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(1, 1, 1, 1); // Clear to white to match background
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // Calculate time for noise animation
@@ -392,23 +402,62 @@ export function useWebGL(canvasRef: React.RefObject<HTMLCanvasElement>) {
 
       // Handle pattern texture for pattern filter
       if (filter.type === 'pattern') {
-        const hasPattern = filter.patternImage ? 1.0 : 0.0;
-        gl.uniform1f(gl.getUniformLocation(program, 'u_hasPattern'), hasPattern);
-        if (filter.patternImage) {
-          let patternTexture = patternTexturesRef.current.get(filter.id);
-          if (!patternTexture) {
-            patternTexture = gl.createTexture()!;
-            patternTexturesRef.current.set(filter.id, patternTexture);
+        const pParams = filter.patternParams || {
+          view: 'patterns',
+          opacity: 0.5,
+          width: 50,
+          height: 50,
+          orientation: 'vertical',
+          line1Color: '#ffffff',
+          line1Thickness: 5,
+          line2Color: '#000000',
+          line2Thickness: 5
+        };
+
+        gl.uniform1i(gl.getUniformLocation(program, 'u_patternView'), pParams.view === 'patterns' ? 0 : 1);
+        gl.uniform1f(gl.getUniformLocation(program, 'u_patternOpacity'), pParams.opacity);
+        
+        if (pParams.view === 'patterns') {
+          gl.uniform1f(gl.getUniformLocation(program, 'u_width'), pParams.width);
+          gl.uniform1f(gl.getUniformLocation(program, 'u_height'), pParams.height);
+          
+          const hasPattern = filter.patternImage ? 1.0 : 0.0;
+          gl.uniform1f(gl.getUniformLocation(program, 'u_hasPattern'), hasPattern);
+          if (filter.patternImage) {
+            let patternTexture = patternTexturesRef.current.get(filter.id);
+            if (!patternTexture) {
+              patternTexture = gl.createTexture()!;
+              patternTexturesRef.current.set(filter.id, patternTexture);
+            }
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, patternTexture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, filter.patternImage);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.uniform1i(gl.getUniformLocation(program, 'u_pattern'), 1);
           }
-          gl.activeTexture(gl.TEXTURE1);
-          gl.bindTexture(gl.TEXTURE_2D, patternTexture);
-          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, filter.patternImage);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-          gl.uniform1i(gl.getUniformLocation(program, 'u_pattern'), 1);
+        } else {
+          // Lines view
+          gl.uniform1i(gl.getUniformLocation(program, 'u_orientation'), pParams.orientation === 'vertical' ? 0 : 1);
+          
+          // Helper to convert hex to RGB array [r, g, b]
+          const hexToRgb = (hex: string) => {
+            const r = parseInt(hex.slice(1, 3), 16) / 255;
+            const g = parseInt(hex.slice(3, 5), 16) / 255;
+            const b = parseInt(hex.slice(5, 7), 16) / 255;
+            return [r, g, b];
+          };
+          
+          const rgb1 = hexToRgb(pParams.line1Color);
+          const rgb2 = hexToRgb(pParams.line2Color);
+          
+          gl.uniform3fv(gl.getUniformLocation(program, 'u_line1Color'), new Float32Array(rgb1));
+          gl.uniform1f(gl.getUniformLocation(program, 'u_line1Thickness'), pParams.line1Thickness);
+          gl.uniform3fv(gl.getUniformLocation(program, 'u_line2Color'), new Float32Array(rgb2));
+          gl.uniform1f(gl.getUniformLocation(program, 'u_line2Thickness'), pParams.line2Thickness);
         }
       }
 

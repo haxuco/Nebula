@@ -129,7 +129,7 @@ export function HueWheelSelector({
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group pointer-events-auto" onMouseDown={handleMouseDown('min')} style={{
               padding: '4px'
             }}>
-                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-lg border-2 border-slate-700 transition-transform group-hover:scale-125" />
+                <div className="w-2.5 h-2.5 rounded-none bg-white shadow-lg border-2 border-slate-700 transition-transform group-hover:scale-125" />
               </div>
             </div>
 
@@ -140,7 +140,7 @@ export function HueWheelSelector({
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group pointer-events-auto" onMouseDown={handleMouseDown('max')} style={{
               padding: '4px'
             }}>
-                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-lg border-2 border-slate-700 transition-transform group-hover:scale-125" />
+                <div className="w-2.5 h-2.5 rounded-none bg-white shadow-lg border-2 border-slate-700 transition-transform group-hover:scale-125" />
               </div>
             </div>
           </div>

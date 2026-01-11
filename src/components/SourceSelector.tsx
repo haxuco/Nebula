@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { VideoIcon, ImageIcon, UploadIcon } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { VideoIcon, ImageIcon, UploadIcon, ChevronDownIcon } from 'lucide-react';
 interface SourceSelectorProps {
   onWebcam: () => void;
   onImage: (file: File) => void;
@@ -12,10 +12,21 @@ export function SourceSelector({
   onVideo,
   hasSource
 }: SourceSelectorProps) {
+  const [showDropdown, setShowDropdown] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const handleImageClick = () => imageInputRef.current?.click();
-  const handleVideoClick = () => videoInputRef.current?.click();
+  const handleImageClick = () => {
+    imageInputRef.current?.click();
+    setShowDropdown(false);
+  };
+  const handleVideoClick = () => {
+    videoInputRef.current?.click();
+    setShowDropdown(false);
+  };
+  const handleWebcamClick = () => {
+    onWebcam();
+    setShowDropdown(false);
+  };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) onImage(file);
@@ -24,28 +35,39 @@ export function SourceSelector({
     const file = e.target.files?.[0];
     if (file) onVideo(file);
   };
-  return <div className="space-y-3">
-      <h3 className="text-sm font-medium text-purple-300 uppercase tracking-wider">
-        Source
-      </h3>
+  return <div className="relative">
+      <button onClick={() => setShowDropdown(!showDropdown)} className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-slate-50 border border-slate-200 transition-colors text-left group shadow-sm">
+        <div className="flex items-center gap-3">
+          <VideoIcon className="w-5 h-5 text-blue-600" />
+          <span className="text-sm text-slate-700 font-medium">Select Source</span>
+        </div>
+        <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+      </button>
 
-      <div className="space-y-2">
-        <button onClick={onWebcam} className="w-full flex items-center gap-3 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-lg transition-colors text-left group">
-          <VideoIcon className="w-5 h-5 text-purple-400 group-hover:text-purple-300" />
-          <span className="text-sm text-slate-200">Webcam</span>
-        </button>
+      {showDropdown && <>
+          <div className="fixed inset-0" style={{
+        zIndex: 9997
+      }} onClick={() => setShowDropdown(false)} />
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl overflow-hidden" style={{
+        zIndex: 9999
+      }}>
+            <button onClick={handleWebcamClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left group border-b border-slate-100">
+              <VideoIcon className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />
+              <span className="text-sm text-slate-700 font-medium">Webcam</span>
+            </button>
 
-        <button onClick={handleImageClick} className="w-full flex items-center gap-3 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-lg transition-colors text-left group">
-          <ImageIcon className="w-5 h-5 text-purple-400 group-hover:text-purple-300" />
-          <span className="text-sm text-slate-200">Upload Image</span>
-        </button>
-        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            <button onClick={handleImageClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left group border-b border-slate-100">
+              <ImageIcon className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />
+              <span className="text-sm text-slate-700 font-medium">Upload Image</span>
+            </button>
+            <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
 
-        <button onClick={handleVideoClick} className="w-full flex items-center gap-3 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-lg transition-colors text-left group">
-          <UploadIcon className="w-5 h-5 text-purple-400 group-hover:text-purple-300" />
-          <span className="text-sm text-slate-200">Upload Video</span>
-        </button>
-        <input ref={videoInputRef} type="file" accept="video/*" onChange={handleVideoChange} className="hidden" />
-      </div>
+            <button onClick={handleVideoClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left group">
+              <UploadIcon className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />
+              <span className="text-sm text-slate-700 font-medium">Upload Video</span>
+            </button>
+            <input ref={videoInputRef} type="file" accept="video/*" onChange={handleVideoChange} className="hidden" />
+          </div>
+        </>}
     </div>;
 }

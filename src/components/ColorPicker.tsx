@@ -37,19 +37,19 @@ export function ColorPicker({
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3
               [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
               [&::-moz-range-thumb]:w-3
               [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
@@ -71,19 +71,19 @@ export function ColorPicker({
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3
               [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
               [&::-moz-range-thumb]:w-3
               [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>
@@ -103,19 +103,19 @@ export function ColorPicker({
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3
               [&::-webkit-slider-thumb]:h-3
-              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:rounded-none
               [&::-webkit-slider-thumb]:bg-gradient-to-br
-              [&::-webkit-slider-thumb]:from-purple-400
-              [&::-webkit-slider-thumb]:to-blue-400
+              [&::-webkit-slider-thumb]:from-blue-600
+              [&::-webkit-slider-thumb]:to-blue-500
               [&::-webkit-slider-thumb]:cursor-pointer
               [&::-webkit-slider-thumb]:transition-transform
               [&::-webkit-slider-thumb]:hover:scale-110
               [&::-moz-range-thumb]:w-3
               [&::-moz-range-thumb]:h-3
-              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:rounded-none
               [&::-moz-range-thumb]:bg-gradient-to-br
-              [&::-moz-range-thumb]:from-purple-400
-              [&::-moz-range-thumb]:to-blue-400
+              [&::-moz-range-thumb]:from-blue-600
+              [&::-moz-range-thumb]:to-blue-500
               [&::-moz-range-thumb]:border-0
               [&::-moz-range-thumb]:cursor-pointer" />
         </div>

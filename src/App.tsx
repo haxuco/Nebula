@@ -1,16 +1,109 @@
-import React, { useCallback, useState, useRef } from 'react';
-import { FilterConfig, FilterType, BlendMode, BlendModePreview, NoiseType, NoiseTypePreview, ColorChannel, ColorToneParams, GlowParams, VSyncTearsParams, ChromaticAberrationParams, DuplicateLayerParams } from './types';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { FilterConfig, FilterType, BlendMode, BlendModePreview, NoiseType, NoiseTypePreview, ColorChannel, ColorToneParams, GlowParams, VSyncTearsParams, ChromaticAberrationParams, DuplicateLayerParams, PatternParams } from './types';
 import { FILTER_DEFINITIONS } from './constants/filters';
 import { useMediaSource } from './hooks/useMediaSource';
 import { SourceSelector } from './components/SourceSelector';
 import { FilterPipeline } from './components/FilterPipeline';
 import { WebGLCanvas } from './components/WebGLCanvas';
+
 export function App() {
   const [filters, setFilters] = useState<FilterConfig[]>([]);
   const [previewFilters, setPreviewFilters] = useState<FilterConfig[] | null>(null);
   const [blendModePreview, setBlendModePreview] = useState<BlendModePreview | null>(null);
   const [noiseTypePreview, setNoiseTypePreview] = useState<NoiseTypePreview | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // History for undo/redo
+  const historyRef = useRef<FilterConfig[][]>([[]]);
+  const historyIndexRef = useRef<number>(0);
+  const isInternalUpdateRef = useRef<boolean>(false);
+  const lastSaveTimeRef = useRef<number>(0);
+
+  // Function to save state to history
+  const saveToHistory = useCallback((newFilters: FilterConfig[], force = false) => {
+    if (isInternalUpdateRef.current) return;
+
+    const now = Date.now();
+    // A change is considered a new action if it's forced (structural) 
+    // or if it's been more than 500ms since the last save
+    const isNewAction = force || (now - lastSaveTimeRef.current > 500);
+
+    if (isNewAction) {
+      // Remove any "redo" states if we're making a new change
+      const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+      
+      // Add the new state
+      newHistory.push(JSON.parse(JSON.stringify(newFilters))); // Deep clone to be safe
+      
+      // Limit to 10 actions (11 states total including initial)
+      if (newHistory.length > 11) {
+        newHistory.shift();
+      } else {
+        historyIndexRef.current++;
+      }
+      
+      historyRef.current = newHistory;
+    } else {
+      // Just update the current history point for rapid updates
+      historyRef.current[historyIndexRef.current] = JSON.parse(JSON.stringify(newFilters));
+    }
+
+    lastSaveTimeRef.current = now;
+  }, []);
+
+  // Update filters and save to history
+  const setFiltersWithHistory = useCallback((update: FilterConfig[] | ((prev: FilterConfig[]) => FilterConfig[]), force = false) => {
+    setFilters(prev => {
+      const next = typeof update === 'function' ? update(prev) : update;
+      saveToHistory(next, force);
+      return next;
+    });
+  }, [saveToHistory]);
+
+  const handleUndo = useCallback(() => {
+    if (historyIndexRef.current > 0) {
+      isInternalUpdateRef.current = true;
+      historyIndexRef.current--;
+      const prevState = historyRef.current[historyIndexRef.current];
+      setFilters(JSON.parse(JSON.stringify(prevState)));
+      // Reset the flag in the next tick
+      setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
+    }
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndexRef.current < historyRef.current.length - 1) {
+      isInternalUpdateRef.current = true;
+      historyIndexRef.current++;
+      const nextState = historyRef.current[historyIndexRef.current];
+      setFilters(JSON.parse(JSON.stringify(nextState)));
+      // Reset the flag in the next tick
+      setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
+    }
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Support both Cmd+Z (Mac) and Ctrl+Z (Windows/Linux)
+      const isZ = e.code === 'KeyZ';
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      const isShift = e.shiftKey;
+
+      if (isCmdOrCtrl && isZ) {
+        if (isShift) {
+          e.preventDefault();
+          handleRedo();
+        } else {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true); // Use capture phase to intercept
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [handleUndo, handleRedo]);
   const {
     source,
     error,
@@ -36,28 +129,33 @@ export function App() {
       glowParams: definition.defaultGlowParams,
       vsyncTearsParams: definition.defaultVSyncTearsParams,
       chromaticAberrationParams: definition.defaultChromaticAberrationParams,
-      duplicateLayerParams: definition.defaultDuplicateLayerParams
+      duplicateLayerParams: definition.defaultDuplicateLayerParams,
+      patternParams: definition.defaultPatternParams
     };
-    setFilters(prev => [newFilter, ...prev]);
-  }, []);
+    setFiltersWithHistory(prev => [newFilter, ...prev], true);
+  }, [setFiltersWithHistory]);
+
   const updateFilter = useCallback((id: string, params: Record<string, number>) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       params
     } : f));
-  }, []);
+  }, [setFiltersWithHistory]);
+
   const updatePatternImage = useCallback((id: string, image: HTMLImageElement) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       patternImage: image
-    } : f));
-  }, []);
+    } : f), true);
+  }, [setFiltersWithHistory]);
+
   const updateBlendMode = useCallback((id: string, blendMode: BlendMode) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       blendMode
-    } : f));
-  }, []);
+    } : f), true);
+  }, [setFiltersWithHistory]);
+
   const previewBlendMode = useCallback((id: string, blendMode: BlendMode | null) => {
     if (blendMode === null) {
       setBlendModePreview(null);
@@ -68,12 +166,14 @@ export function App() {
       });
     }
   }, []);
+
   const updateNoiseType = useCallback((id: string, noiseType: NoiseType) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       noiseType
-    } : f));
-  }, []);
+    } : f), true);
+  }, [setFiltersWithHistory]);
+
   const previewNoiseType = useCallback((id: string, noiseType: NoiseType | null) => {
     if (noiseType === null) {
       setNoiseTypePreview(null);
@@ -84,44 +184,58 @@ export function App() {
       });
     }
   }, []);
+
   const updateColorTone = useCallback((id: string, colorToneParams: ColorToneParams) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       colorToneParams
     } : f));
-  }, []);
+  }, [setFiltersWithHistory]);
+
   const updateColorChannel = useCallback((id: string, channel: ColorChannel) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       activeColorChannel: channel
-    } : f));
-  }, []);
+    } : f), true);
+  }, [setFiltersWithHistory]);
+
   const updateGlow = useCallback((id: string, glowParams: GlowParams) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       glowParams
     } : f));
-  }, []);
+  }, [setFiltersWithHistory]);
+
   const updateVSyncTears = useCallback((id: string, vsyncTearsParams: VSyncTearsParams) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       vsyncTearsParams
     } : f));
-  }, []);
+  }, [setFiltersWithHistory]);
+
   const updateChromaticAberration = useCallback((id: string, chromaticAberrationParams: ChromaticAberrationParams) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       chromaticAberrationParams
     } : f));
-  }, []);
+  }, [setFiltersWithHistory]);
+
   const updateDuplicateLayer = useCallback((id: string, duplicateLayerParams: DuplicateLayerParams) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       duplicateLayerParams
     } : f));
-  }, []);
+  }, [setFiltersWithHistory]);
+
+  const updatePattern = useCallback((id: string, patternParams: PatternParams) => {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
+      ...f,
+      patternParams
+    } : f));
+  }, [setFiltersWithHistory]);
+
   const linkDimensions = useCallback((sourceId: string, targetId: string) => {
-    setFilters(prev => {
+    setFiltersWithHistory(prev => {
       const sourceFilter = prev.find(f => f.id === sourceId);
       const targetFilter = prev.find(f => f.id === targetId);
       if (!sourceFilter || !targetFilter) return prev;
@@ -144,10 +258,11 @@ export function App() {
         }
         return f;
       });
-    });
-  }, []);
+    }, true);
+  }, [setFiltersWithHistory]);
+
   const unlinkDimensions = useCallback((filterId: string, targetId: string) => {
-    setFilters(prev => {
+    setFiltersWithHistory(prev => {
       const filter = prev.find(f => f.id === filterId);
       if (!filter || !filter.linkedDimensions) return prev;
       return prev.map(f => {
@@ -184,16 +299,18 @@ export function App() {
         }
         return f;
       });
-    });
-  }, []);
+    }, true);
+  }, [setFiltersWithHistory]);
+
   const toggleFilterEnabled = useCallback((id: string) => {
-    setFilters(prev => prev.map(f => f.id === id ? {
+    setFiltersWithHistory(prev => prev.map(f => f.id === id ? {
       ...f,
       enabled: !f.enabled
-    } : f));
-  }, []);
+    } : f), true);
+  }, [setFiltersWithHistory]);
+
   const removeFilter = useCallback((id: string) => {
-    setFilters(prev => {
+    setFiltersWithHistory(prev => {
       const filterToRemove = prev.find(f => f.id === id);
       if (filterToRemove?.linkedDimensions && filterToRemove.linkedDimensions.length > 0) {
         const updatedFilters = prev.map(f => {
@@ -208,11 +325,12 @@ export function App() {
         return updatedFilters.filter(f => f.id !== id);
       }
       return prev.filter(f => f.id !== id);
-    });
-  }, []);
+    }, true);
+  }, [setFiltersWithHistory]);
+
   const reorderFilters = useCallback((newFilters: FilterConfig[]) => {
-    setFilters(newFilters);
-  }, []);
+    setFiltersWithHistory(newFilters, true);
+  }, [setFiltersWithHistory]);
   const handlePreviewReorder = useCallback((newFilters: FilterConfig[]) => {
     setPreviewFilters(newFilters);
   }, []);
@@ -234,34 +352,29 @@ export function App() {
   // Use preview filters for canvas if available, otherwise use regular filters
   const canvasFilters = previewFilters || filtersWithPreview;
   const hasActiveSource = source.type !== 'none';
-  return <div className="w-full h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex overflow-hidden">
-      <div className="w-80 h-full bg-slate-900/50 backdrop-blur-sm border-r border-slate-800/50 flex flex-col">
-        <div className="px-6 py-5 border-b border-slate-800/50">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Nebula
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Real-time filter pipeline
-          </p>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          {error && <div className="px-4 py-3 bg-red-900/20 border border-red-800/30 rounded-lg mb-8">
-              <p className="text-sm text-red-400">{error}</p>
+  return <div className="w-full h-screen bg-slate-100 flex overflow-hidden" style={{ backgroundColor: '#e8f0f5' }}>
+      <div className="w-80 h-full bg-white backdrop-blur-sm flex flex-col">
+        <div className="flex-1 overflow-y-auto scrollbar-left">
+          <div style={{ direction: 'ltr' }}>
+            {error && <div className="px-6 mb-4 mt-4">
+              <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
             </div>}
 
-          <FilterPipeline filters={filters} onAddFilter={addFilter} onUpdateFilter={updateFilter} onUpdatePatternImage={updatePatternImage} onUpdateBlendMode={updateBlendMode} onPreviewBlendMode={previewBlendMode} onUpdateNoiseType={updateNoiseType} onPreviewNoiseType={previewNoiseType} onUpdateColorTone={updateColorTone} onUpdateColorChannel={updateColorChannel} onUpdateGlow={updateGlow} onUpdateVSyncTears={updateVSyncTears} onUpdateChromaticAberration={updateChromaticAberration} onUpdateDuplicateLayer={updateDuplicateLayer} onToggleFilterEnabled={toggleFilterEnabled} onRemoveFilter={removeFilter} onReorderFilters={reorderFilters} onLinkDimensions={linkDimensions} onUnlinkDimensions={unlinkDimensions} canvasRef={canvasRef} onPreviewReorder={handlePreviewReorder} onCancelPreview={handleCancelPreview} />
+            <FilterPipeline filters={filters} onAddFilter={addFilter} onUpdateFilter={updateFilter} onUpdatePatternImage={updatePatternImage} onUpdateBlendMode={updateBlendMode} onPreviewBlendMode={previewBlendMode} onUpdateNoiseType={updateNoiseType} onPreviewNoiseType={previewNoiseType} onUpdateColorTone={updateColorTone} onUpdateColorChannel={updateColorChannel} onUpdateGlow={updateGlow} onUpdateVSyncTears={updateVSyncTears} onUpdateChromaticAberration={updateChromaticAberration} onUpdateDuplicateLayer={updateDuplicateLayer} onUpdatePattern={updatePattern} onToggleFilterEnabled={toggleFilterEnabled} onRemoveFilter={removeFilter} onReorderFilters={reorderFilters} onLinkDimensions={linkDimensions} onUnlinkDimensions={unlinkDimensions} canvasRef={canvasRef} onPreviewReorder={handlePreviewReorder} onCancelPreview={handleCancelPreview} />
+          </div>
         </div>
       </div>
 
       <div className="flex-1 h-full relative">
-        {!hasActiveSource && <div className="absolute inset-0 flex items-center justify-center z-10">
+        {!hasActiveSource && <div className="absolute inset-0 flex items-center justify-center z-10 bg-white">
             <div className="w-full max-w-md px-6">
               <SourceSelector onWebcam={startWebcam} onImage={loadImage} onVideo={loadVideo} hasSource={hasActiveSource} />
             </div>
           </div>}
 
-        <WebGLCanvas ref={canvasRef} source={source.element || null} sourceType={source.type} filters={canvasFilters} isSourceReady={isReady} onBack={stopSource} />
+        <WebGLCanvas ref={canvasRef} source={source.element || null} sourceType={source.type} filters={canvasFilters} isSourceReady={isReady} onBack={stopSource} onWebcam={startWebcam} onImage={loadImage} onVideo={loadVideo} />
       </div>
     </div>;
 }

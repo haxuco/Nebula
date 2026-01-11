@@ -63,7 +63,7 @@ export function AnglePicker({
 
           {/* Center dot */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-slate-600" />
+            <div className="w-2 h-2 rounded-none bg-slate-600" />
           </div>
 
           {/* Draggable handle - center intersects circle edge, no line */}
@@ -71,7 +71,7 @@ export function AnglePicker({
           transform: `rotate(${rotation}deg)`
         }}>
             {/* Handle at edge - center of handle intersects circle */}
-            <div className="absolute top-0 w-3 h-3 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 shadow-lg -translate-y-1/2" />
+            <div className="absolute top-0 w-3 h-3 rounded-none bg-gradient-to-br from-blue-600 to-blue-500 shadow-lg -translate-y-1/2" />
           </div>
         </div>
       </div>

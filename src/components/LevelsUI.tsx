@@ -201,7 +201,7 @@ export function LevelsUI({
       {/* Input Levels */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-400">
+          <label className="text-xs font-semibold text-slate-500">
             Input Levels
           </label>
         </div>
@@ -235,9 +235,9 @@ export function LevelsUI({
             <input type="number" value={params.inputBlack} onChange={e => onUpdate({
             ...params,
             inputBlack: Math.max(0, Math.min(255, parseInt(e.target.value) || 0))
-          })} onFocus={() => setFocusedInput('inputBlack')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-slate-700/50 border rounded text-slate-300 text-center
+          })} onFocus={() => setFocusedInput('inputBlack')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-white border rounded text-slate-700 text-center shadow-sm
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                ${focusedInput === 'inputBlack' ? 'border-purple-500 ring-1 ring-purple-500/50' : 'border-slate-600'}`} />
+                ${focusedInput === 'inputBlack' ? 'border-blue-600 ring-1 ring-blue-600/50' : 'border-slate-200'}`} />
             <div className="flex flex-col">
               <button onMouseDown={() => {
               onUpdate({
@@ -248,8 +248,8 @@ export function LevelsUI({
                 param: 'inputBlack',
                 direction: 'up'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border border-b-0 rounded-t hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'inputBlack' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border border-b-0 rounded-t hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'inputBlack' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronUpIcon className="w-3 h-3 text-slate-400" />
               </button>
               <button onMouseDown={() => {
@@ -261,8 +261,8 @@ export function LevelsUI({
                 param: 'inputBlack',
                 direction: 'down'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border rounded-b hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'inputBlack' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border rounded-b hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'inputBlack' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronDownIcon className="w-3 h-3 text-slate-400" />
               </button>
             </div>
@@ -273,9 +273,9 @@ export function LevelsUI({
             <input type="number" value={params.gamma.toFixed(2)} step="0.01" onChange={e => onUpdate({
             ...params,
             gamma: Math.max(0.1, Math.min(9.99, parseFloat(e.target.value) || 1))
-          })} onFocus={() => setFocusedInput('gamma')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-slate-700/50 border rounded text-slate-300 text-center
+          })} onFocus={() => setFocusedInput('gamma')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-white border rounded text-slate-700 text-center shadow-sm
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                ${focusedInput === 'gamma' ? 'border-purple-500 ring-1 ring-purple-500/50' : 'border-slate-600'}`} />
+                ${focusedInput === 'gamma' ? 'border-blue-600 ring-1 ring-blue-600/50' : 'border-slate-200'}`} />
             <div className="flex flex-col">
               <button onMouseDown={() => {
               onUpdate({
@@ -286,8 +286,8 @@ export function LevelsUI({
                 param: 'gamma',
                 direction: 'up'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('gamma')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border border-b-0 rounded-t hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'gamma' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('gamma')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border border-b-0 rounded-t hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'gamma' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronUpIcon className="w-3 h-3 text-slate-400" />
               </button>
               <button onMouseDown={() => {
@@ -299,8 +299,8 @@ export function LevelsUI({
                 param: 'gamma',
                 direction: 'down'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('gamma')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border rounded-b hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'gamma' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('gamma')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border rounded-b hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'gamma' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronDownIcon className="w-3 h-3 text-slate-400" />
               </button>
             </div>
@@ -311,9 +311,9 @@ export function LevelsUI({
             <input type="number" value={params.inputWhite} onChange={e => onUpdate({
             ...params,
             inputWhite: Math.max(0, Math.min(255, parseInt(e.target.value) || 255))
-          })} onFocus={() => setFocusedInput('inputWhite')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-slate-700/50 border rounded text-slate-300 text-center
+          })} onFocus={() => setFocusedInput('inputWhite')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-white border rounded text-slate-700 text-center shadow-sm
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                ${focusedInput === 'inputWhite' ? 'border-purple-500 ring-1 ring-purple-500/50' : 'border-slate-600'}`} />
+                ${focusedInput === 'inputWhite' ? 'border-blue-600 ring-1 ring-blue-600/50' : 'border-slate-200'}`} />
             <div className="flex flex-col">
               <button onMouseDown={() => {
               onUpdate({
@@ -324,8 +324,8 @@ export function LevelsUI({
                 param: 'inputWhite',
                 direction: 'up'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border border-b-0 rounded-t hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'inputWhite' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border border-b-0 rounded-t hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'inputWhite' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronUpIcon className="w-3 h-3 text-slate-400" />
               </button>
               <button onMouseDown={() => {
@@ -337,8 +337,8 @@ export function LevelsUI({
                 param: 'inputWhite',
                 direction: 'down'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border rounded-b hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'inputWhite' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('inputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border rounded-b hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'inputWhite' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronDownIcon className="w-3 h-3 text-slate-400" />
               </button>
             </div>
@@ -349,7 +349,7 @@ export function LevelsUI({
       {/* Output Levels */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-400">
+          <label className="text-xs font-semibold text-slate-500">
             Output Levels
           </label>
         </div>
@@ -376,9 +376,9 @@ export function LevelsUI({
             <input type="number" value={params.outputBlack} onChange={e => onUpdate({
             ...params,
             outputBlack: Math.max(0, Math.min(255, parseInt(e.target.value) || 0))
-          })} onFocus={() => setFocusedInput('outputBlack')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-slate-700/50 border rounded text-slate-300 text-center
+          })} onFocus={() => setFocusedInput('outputBlack')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-white border rounded text-slate-700 text-center shadow-sm
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                ${focusedInput === 'outputBlack' ? 'border-purple-500 ring-1 ring-purple-500/50' : 'border-slate-600'}`} />
+                ${focusedInput === 'outputBlack' ? 'border-blue-600 ring-1 ring-blue-600/50' : 'border-slate-200'}`} />
             <div className="flex flex-col">
               <button onMouseDown={() => {
               onUpdate({
@@ -389,8 +389,8 @@ export function LevelsUI({
                 param: 'outputBlack',
                 direction: 'up'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border border-b-0 rounded-t hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'outputBlack' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border border-b-0 rounded-t hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'outputBlack' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronUpIcon className="w-3 h-3 text-slate-400" />
               </button>
               <button onMouseDown={() => {
@@ -402,8 +402,8 @@ export function LevelsUI({
                 param: 'outputBlack',
                 direction: 'down'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border rounded-b hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'outputBlack' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputBlack')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border rounded-b hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'outputBlack' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronDownIcon className="w-3 h-3 text-slate-400" />
               </button>
             </div>
@@ -414,9 +414,9 @@ export function LevelsUI({
             <input type="number" value={params.outputWhite} onChange={e => onUpdate({
             ...params,
             outputWhite: Math.max(0, Math.min(255, parseInt(e.target.value) || 255))
-          })} onFocus={() => setFocusedInput('outputWhite')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-slate-700/50 border rounded text-slate-300 text-center
+          })} onFocus={() => setFocusedInput('outputWhite')} onBlur={() => setFocusedInput(null)} className={`w-12 px-2 py-1 bg-white border rounded text-slate-700 text-center shadow-sm
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                ${focusedInput === 'outputWhite' ? 'border-purple-500 ring-1 ring-purple-500/50' : 'border-slate-600'}`} />
+                ${focusedInput === 'outputWhite' ? 'border-blue-600 ring-1 ring-blue-600/50' : 'border-slate-200'}`} />
             <div className="flex flex-col">
               <button onMouseDown={() => {
               onUpdate({
@@ -427,8 +427,8 @@ export function LevelsUI({
                 param: 'outputWhite',
                 direction: 'up'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border border-b-0 rounded-t hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'outputWhite' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border border-b-0 rounded-t hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'outputWhite' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronUpIcon className="w-3 h-3 text-slate-400" />
               </button>
               <button onMouseDown={() => {
@@ -440,8 +440,8 @@ export function LevelsUI({
                 param: 'outputWhite',
                 direction: 'down'
               });
-            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-slate-700/50 border rounded-b hover:bg-slate-600/50 transition-colors
-                  ${focusedInput === 'outputWhite' ? 'border-purple-500' : 'border-slate-600'}`}>
+            }} onMouseUp={() => setHoldingButton(null)} onMouseLeave={() => setHoldingButton(null)} onFocus={() => setFocusedInput('outputWhite')} onBlur={() => setFocusedInput(null)} className={`w-4 h-3 flex items-center justify-center bg-white border rounded-b hover:bg-slate-50 transition-colors
+                  ${focusedInput === 'outputWhite' ? 'border-blue-600' : 'border-slate-200'}`}>
                 <ChevronDownIcon className="w-3 h-3 text-slate-400" />
               </button>
             </div>
